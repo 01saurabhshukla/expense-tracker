@@ -618,6 +618,27 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Hurts when:** Rarely — only during an import, and the next load is right.
 - **Fix:** Run them in one `REPEATABLE READ` transaction (serially).
 
+### T82 — The PDF lists at most 500 transactions · Active · (D31)
+- **We accept:** Longer reports show totals for everything but list only
+  the first 500 rows (it says so on the page).
+- **Hurts when:** Someone wants a printable list of a whole year.
+- **Fix:** Stream the PDF page by page without `bufferPages` (drop "of y"),
+  or generate big reports in the background worker.
+
+### T83 — PDF fonts have no ₹ and no Indian scripts · Active · (D31)
+- **We accept:** Amounts say "Rs"; characters outside Western European
+  (Devanagari etc.) print as "?".
+- **Hurts when:** A description is in Hindi or another script.
+- **Fix:** Bundle a Unicode font (e.g. Noto Sans) with the backend and
+  register it in pdfkit.
+
+### T84 — Excel turns long references into numbers when opening the CSV · Active · (D31)
+- **We accept:** The CSV contains `0000006266119255`, but Excel shows
+  `6.26612E+09` (and drops the zeros) unless the column is imported as text.
+- **Hurts when:** Someone reconciles references in Excel.
+- **Fix:** Write references as `="0000006266119255"` (an Excel-only trick
+  that other tools show literally), or offer an `.xlsx` export.
+
 ## Validation & errors
 
 ### T11 — Zod silently drops unknown fields · Active · (D8)

@@ -8,6 +8,7 @@ import { uploadsRouter } from './routes/uploads.routes.js';
 import { transactionsRouter } from './routes/transactions.routes.js';
 import { categoriesRouter } from './routes/categories.routes.js';
 import { dashboardRouter } from './routes/dashboard.routes.js';
+import { exportsRouter } from './routes/exports.routes.js';
 
 export function createApp() {
   const app = express();
@@ -27,6 +28,7 @@ export function createApp() {
   app.use('/transactions', transactionsRouter);
   app.use('/categories', categoriesRouter);
   app.use('/dashboard', dashboardRouter);
+  app.use('/exports', exportsRouter);
 
   app.use(notFound);
   app.use(errorHandler);

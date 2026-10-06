@@ -104,7 +104,7 @@ Chosen for a later stage; uploads currently restart from zero (option A).
       are deleted; user-initiated delete; account deletion) — T34, T39
 - [x] Transactions API: list + filters, corrections (per row / per merchant), rules (D29)
 - [x] Dashboard API: totals, categories, gap-free timeline, top merchants (D30)
-- [ ] Reports: CSV/PDF export
+- [x] Exports: streaming CSV (formula-safe) and PDF report (D31)
 - [ ] Frontend (React + Vite)
 - [ ] Rate limiter, metrics, tracing, resumable uploads (from Pending above)
 - [ ] Deployment: EC2 (backend), separate host (frontend)

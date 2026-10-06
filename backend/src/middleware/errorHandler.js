@@ -5,6 +5,22 @@ export function notFound(req, res, next) {
 }
 
 export function errorHandler(err, req, res, next) {
+  // A download (CSV/PDF export) that fails after it started sending can't
+  // switch to a JSON error any more. Cut the connection instead: the browser
+  // then reports a failed download, rather than saving a file that looks
+  // complete but is missing rows.
+  if (res.headersSent) {
+    console.error(JSON.stringify({
+      time: new Date().toISOString(),
+      level: 'error',
+      requestId: req.id,
+      message: `Response failed after it started: ${err.message}`,
+      stack: err.stack,
+    }));
+    res.destroy();
+    return;
+  }
+
   let status = 500;
   let code = 'INTERNAL_ERROR';
   let message = 'Something went wrong';

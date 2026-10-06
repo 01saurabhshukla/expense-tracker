@@ -590,6 +590,31 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
 - **Money in/out by direction**, not by category kind: transfers to your own
   accounts count as money out (T80).
 
+### D31 — Exports: streaming CSV and a PDF report
+- **`GET /exports/transactions.csv?<filters>`:** every matching transaction,
+  oldest first, streamed in keyset pages of 2,000 (flat memory, constant
+  cost per page) with backpressure (waits for slow clients, stops when they
+  disconnect). UTF-8 BOM so Excel reads it correctly; CRLF lines (RFC
+  4180). Columns: Date (DD/MM/YYYY), Description, Reference, Debit, Credit,
+  Balance (plain `1234.56`), Category (name), Categorized by, Merchant.
+- **Formula injection:** text cells starting with `= + - @ TAB CR` get a
+  leading `'`, so a description like `=HYPERLINK(…)` stays text (tested).
+- **`GET /exports/report.pdf?<filters>`** (pdfkit): header with period,
+  printed filters and time; money in / out / net / count boxes; a bar chart
+  of spending by category; tables for all categories, months and top
+  merchants; the first 500 transactions (the CSV has all). "Page x of y".
+  Built from `getDashboard()` — the same numbers as the screen. All data
+  is fetched *before* the PDF starts, so a database error is a normal JSON
+  error.
+- **Downloads:** `Content-Disposition: attachment`, `Cache-Control:
+  no-store` (financial data).
+- **Failure mid-download:** the error handler now destroys the connection
+  when headers were already sent, so a cut-off CSV is a failed download, not
+  a file that silently misses rows.
+- **Testing:** the CSV's rows and sums equal the dashboard's for four
+  filters; 4,500 rows stream across pages in order without repeats; the
+  PDF's text is checked with `pdf-parse` (dev dependency only).
+
 ---
 
 ## Revisit before deploying
