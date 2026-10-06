@@ -522,8 +522,9 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
   (bounded by the gate: ≤ 50 MB uncompressed).
 - **Hurts when:** A very large workbook with mostly unique text uses a lot of
   worker memory.
-- **Fix:** Looked at again in 7i (large files): measure with a 200k-row
-  workbook; if needed, a lower size limit for `.xlsx`.
+- **Fix:** Measured in 7i: a 20k-row workbook peaks at 93 MB; the gate's
+  50 MB uncompressed limit caps a workbook at ~100k rows. If that ever
+  matters, read sharedStrings into a temporary file instead.
 
 ### T69 — Excel's 15-digit limit on numeric references · Active · (D27)
 - **We accept:** A reference stored by Excel as a number keeps only 15
@@ -538,6 +539,35 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Hurts when:** Re-importing an overlapping statement on dev data saved
   before 7g could store some rows twice.
 - **Fix:** Reprocess old uploads (set them to `queued`), or start dev data fresh.
+
+### T71 — One long database transaction per import · Active · (D28)
+- **We accept:** A 200k-row import keeps one transaction (and one pool
+  connection) open for its whole duration (~1–2 minutes here).
+- **Hurts when:** Many huge imports run at once (connections tied up), or a
+  long transaction delays Postgres housekeeping (vacuum).
+- **Fix:** Import into a staging table in committed batches, then swap in
+  one short transaction at the end.
+
+### T72 — Large uploads take time, and the upload limit stays at 10 MB · Active · (D28)
+- **We accept:** ~85k CSV rows per file; a big file takes a minute or more to
+  import (progress is shown).
+- **Hurts when:** Someone has a bigger export (e.g. many years of a business
+  account).
+- **Fix:** Raise `UPLOAD_MAX_BYTES` (memory is flat now), together with
+  nginx `client_max_body_size`; resumable uploads (tus) for slow networks.
+
+### T73 — Fewer, coarser stages · Active · (D28)
+- **We accept:** The user sees reading → importing (with %) → saving instead
+  of validating / categorizing / summarizing as separate steps.
+- **Hurts when:** Someone wants to know exactly which kind of work is running.
+- **Fix:** Counters in `progress` already say what has happened so far.
+
+### T74 — One unexplained crash in the 200k measurement · Active · (D28)
+- **We accept:** The first of seven 200k-row runs exited with an error whose
+  message was cut off by my own `tail`; six reruns with full logs completed.
+- **Hurts when:** It's a real bug that happens under load.
+- **Fix:** Re-run the measurement on EC2 with full logs; pm2 restarts the
+  worker and the sweep re-queues the upload in the meantime.
 
 ## Validation & errors
 

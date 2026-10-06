@@ -1,4 +1,5 @@
 import { createReadStream } from 'node:fs';
+import { stat } from 'node:fs/promises';
 import { parse } from 'csv-parse';
 import { ParseError } from '../errors.js';
 
@@ -15,7 +16,10 @@ const MAX_RECORD_BYTES = 64 * 1024;
 // extra columns and footers all come through as-is. Deciding what they mean
 // is the next stage's job. The only thing it rejects is text that isn't
 // valid CSV at all, like a quote that is never closed.
-export async function* readCsvRows(filePath) {
+//
+// `onProgress(fraction)` (optional) is called as the file is read, with the
+// share of bytes read so far (0–1), for the progress bar.
+export async function* readCsvRows(filePath, { onProgress } = {}) {
   const parser = parse({
     bom: true, // drop the invisible UTF-8 marker Excel puts at the start
     relax_column_count: true, // rows may have different numbers of cells
@@ -27,11 +31,20 @@ export async function* readCsvRows(filePath) {
     max_record_size: MAX_RECORD_BYTES,
   });
 
+  const size = onProgress ? (await stat(filePath)).size : 0;
+
   // .pipe() does NOT pass errors along: if the file can't be read (missing,
   // permissions, disk error) the parser would wait for data forever and the
   // loop below would never end. Forward the error so the loop throws instead.
   const source = createReadStream(filePath);
   source.on('error', (err) => parser.destroy(err));
+  if (onProgress) {
+    let bytesRead = 0;
+    source.on('data', (chunk) => {
+      bytesRead += chunk.length;
+      onProgress(size > 0 ? bytesRead / size : 1);
+    });
+  }
   source.pipe(parser);
 
   try {

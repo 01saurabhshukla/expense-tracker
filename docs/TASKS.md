@@ -99,7 +99,7 @@ Chosen for a later stage; uploads currently restart from zero (option A).
         include a running-balance check (flags gaps/misreads, as in the 7c tests)
   - [x] 7g: `.xlsx` reader → same grid (reuses 7b–7f)
   - [ ] 7h: LLM layer 4 for leftovers (off by default), measured against 7e
-  - [ ] 7i: large files (200k rows): streaming + batched inserts
+  - [x] 7i: large files (200k rows): streaming + batched inserts (D28)
 - [ ] **Decide later:** file retention policy (when, if ever, accepted files
       are deleted; user-initiated delete; account deletion) — T34, T39
 - [ ] Reports: dashboard data, CSV/PDF export

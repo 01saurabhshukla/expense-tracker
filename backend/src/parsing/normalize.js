@@ -99,15 +99,20 @@ export async function normalizeRows(dataRows, header, { onProgress, progressEver
     }
   }
 
-  if (transactions.length === 0) {
-    const message =
-      errors.length === 0
-        ? 'The statement has column headings but no transactions.'
-        : `None of the ${errors.length} rows could be read.`;
-    throw new ParseError('NO_VALID_TRANSACTIONS', message, { details: { errors: errors.slice(0, 20) } });
-  }
+  if (transactions.length === 0) throw noValidTransactions(errors.length, errors);
 
   return { transactions, errors, skipped };
+}
+
+// A file with no valid transaction at all fails as a whole. `errorCount` is
+// the total; `someErrors` the ones kept (the streaming import keeps only the
+// first 100).
+export function noValidTransactions(errorCount, someErrors) {
+  const message =
+    errorCount === 0
+      ? 'The statement has column headings but no transactions.'
+      : `None of the ${errorCount} rows could be read.`;
+  return new ParseError('NO_VALID_TRANSACTIONS', message, { details: { errors: someErrors.slice(0, 20) } });
 }
 
 function readAmount(fields, layout) {

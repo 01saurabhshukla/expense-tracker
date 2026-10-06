@@ -260,7 +260,8 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
 - **Decision:** `POST /uploads` runs only the fast safety gate (D14/D15) and
   replies `201` with the upload id. A background worker then moves the upload
   through stages: `queued → reading → validating → categorizing →
-  summarizing → completed` (or `failed` with a reason). Stage, progress
+  summarizing → completed` (or `failed` with a reason) — *since 7i (D28):
+  `queued → reading → importing → saving → completed`*. Stage, progress
   counters and the final summary are stored in the database;
   `GET /uploads/:id` returns them, and the frontend polls it (~2s).
 - **Why:** User's decision: categorization and analysis may be slow; the user
@@ -500,6 +501,42 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   is unchanged), so a statement's CSV and `.xlsx` dedupe against each other.
 - **Verified:** the five bank CSVs saved as `.xlsx` by LibreOffice (Indian
   locale) give identical transactions and fingerprints to the CSVs.
+
+### D28 — Large files: one streaming pass, flat memory (step 7i)
+- **Measured first:** the 7d–7g pipeline held every row in memory (three
+  copies); 200k rows peaked at **425 MB** — too much for a 1 GB EC2 instance
+  running two jobs at once.
+- **Now:** `processUpload` reads the header ("reading"), then makes ONE
+  streaming pass ("importing"): each row is checked; valid rows are collected
+  into batches of 5,000, categorized, fingerprinted, added to the summary and
+  inserted; then released. Nothing grows with the file except the
+  fingerprint occurrence map (one short key per transaction) and at most
+  100 kept row errors (all are counted).
+- **Building blocks made incremental:** `createBalanceCheck()` (checks both
+  reading orders side by side), `createSummary()`, `createFingerprinter()`.
+  The array versions (`summarize`, `checkRunningBalance`, `addFingerprints`,
+  `normalizeRows`) remain for tests and scripts.
+- **Stages change** (migration 010): `queued → reading → importing → saving →
+  completed | failed`. Validating, categorizing and summarizing now happen
+  together row by row, so separate stages would be untrue. Instead
+  `progress.percent` (bytes read / file size; for .xlsx, of the sheet XML)
+  and live counts (`rowsRead`, `transactionsFound`, `transactionsSaved`,
+  `rowErrors`), written at most every 500 ms.
+- **Still all-or-nothing:** everything is inside one database transaction. A
+  file that breaks on its last line after thousands of rows were inserted
+  leaves nothing behind (tested).
+- **Results** (this dev machine → Supabase over the internet):
+  - CSV reader alone: 76 MB peak for 20k and for 200k rows (flat).
+  - 200k-row CSV (23.6 MB) end to end: 80–100 s, balance check ok; peak
+    337–374 MB for ONE process holding the test client (the whole file, more
+    than once, in memory), the API and the worker together.
+  - Time is dominated by sending rows to the database (batches of 5,000:
+    12.9 s for 20k rows vs 18.6 s with 1,000). On EC2 in the database's
+    region it should be much faster; to be re-measured there.
+  - 20k-row .xlsx: read in 0.6 s, 93 MB peak.
+- **Size limits unchanged:** 10 MB upload ≈ 85k CSV rows; the .xlsx gate's
+  50 MB uncompressed limit ≈ 100k rows. Memory no longer depends on them, so
+  raising `UPLOAD_MAX_BYTES` is now only a time question (T72).
 
 ---
 

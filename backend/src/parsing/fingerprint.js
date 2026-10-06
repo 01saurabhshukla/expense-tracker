@@ -14,18 +14,24 @@ import { createHash } from 'node:crypto';
 // statement numbers them the same way, so they still match — and two genuine
 // identical payments on one day stay two transactions.
 //
-// Returns new objects: each transaction plus `fingerprint` (64 hex chars).
-export function addFingerprints(transactions) {
+// Streaming use (7i): one fingerprinter per file, called row by row in file
+// order. It remembers how often each base key was seen (that's the only
+// thing that grows with the file: one short entry per distinct transaction).
+export function createFingerprinter() {
   const seen = new Map(); // base key → how many times seen so far in this file
 
-  return transactions.map((transaction) => {
+  return (transaction) => {
     const base = baseKey(transaction);
     const occurrence = (seen.get(base) ?? 0) + 1;
     seen.set(base, occurrence);
+    return createHash('sha256').update(`${base}|#${occurrence}`).digest('hex');
+  };
+}
 
-    const fingerprint = createHash('sha256').update(`${base}|#${occurrence}`).digest('hex');
-    return { ...transaction, fingerprint };
-  });
+// Returns new objects: each transaction plus `fingerprint` (64 hex chars).
+export function addFingerprints(transactions) {
+  const fingerprint = createFingerprinter();
+  return transactions.map((transaction) => ({ ...transaction, fingerprint: fingerprint(transaction) }));
 }
 
 function baseKey({ date, direction, amountPaise, reference, balancePaise, description }) {

@@ -28,7 +28,8 @@ const MAX_COLUMNS = 200;
 const malformed = (reason) =>
   new ParseError('MALFORMED_XLSX', `Could not read the workbook: ${reason}.`);
 
-export async function* readXlsxRows(filePath) {
+// `onProgress(fraction)` (optional): share of the sheet read so far (0–1).
+export async function* readXlsxRows(filePath, { onProgress } = {}) {
   let zip;
   try {
     // autoClose: false — we jump between entries, so we close it ourselves.
@@ -39,7 +40,7 @@ export async function* readXlsxRows(filePath) {
     const sharedStrings = await readSharedStrings(zip, entries);
     const dateStyles = await readDateStyles(zip, entries);
 
-    yield* readSheetRows(zip, entries.get(sheetPath), { sharedStrings, dateStyles, date1904 });
+    yield* readSheetRows(zip, entries.get(sheetPath), { sharedStrings, dateStyles, date1904, onProgress });
   } catch (err) {
     throw toParseError(err);
   } finally {
@@ -169,7 +170,7 @@ function isDateFormatCode(code = '') {
 
 // ---------- the sheet itself, streamed row by row ----------
 
-async function* readSheetRows(zip, entry, { sharedStrings, dateStyles, date1904 }) {
+async function* readSheetRows(zip, entry, { sharedStrings, dateStyles, date1904, onProgress }) {
   const ready = []; // rows completed by the last chunk, waiting to be yielded
   let row = null; // { line, cells }
   let lastLine = 0;
@@ -215,7 +216,13 @@ async function* readSheetRows(zip, entry, { sharedStrings, dateStyles, date1904 
     },
   };
 
-  for await (const _ of parseEntry(zip, entry, handlers, { streaming: true })) {
+  // The gate proved uncompressedSize is honest, so it's a true total.
+  let bytesRead = 0;
+  const onChunk = (length) => {
+    bytesRead += length;
+    onProgress?.(entry.uncompressedSize > 0 ? bytesRead / entry.uncompressedSize : 1);
+  };
+  for await (const _ of parseEntry(zip, entry, handlers, { streaming: true, onChunk })) {
     yield* ready.splice(0); // hand over this chunk's rows, then keep reading
   }
   yield* ready.splice(0);
@@ -289,7 +296,7 @@ function columnIndex(ref) {
 // writers use prefixes). With { streaming: true } it's an async generator
 // that pauses after every chunk (so the sheet's rows can be yielded);
 // otherwise it just runs to the end.
-function parseEntry(zip, entry, handlers, { streaming = false } = {}) {
+function parseEntry(zip, entry, handlers, { streaming = false, onChunk } = {}) {
   const run = async function* () {
     const parser = sax.parser(true); // strict: malformed XML is an error, not a guess
     parser.onerror = (err) => {
@@ -311,6 +318,7 @@ function parseEntry(zip, entry, handlers, { streaming = false } = {}) {
     try {
       for await (const chunk of stream) {
         parser.write(decoder.decode(chunk, { stream: true }));
+        onChunk?.(chunk.length);
         yield;
       }
       parser.write(decoder.decode());

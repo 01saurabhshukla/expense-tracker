@@ -102,6 +102,7 @@ test('HDFC statement: queued → … → completed, all 54 transactions saved', 
     rowErrors: 0,
     skippedRows: 1,
     categorizedBy: { user: 0, rule: 54, none: 0 },
+    percent: 100,
   });
   assert.deepEqual(upload.rowErrors, []);
 
