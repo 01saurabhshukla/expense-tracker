@@ -78,7 +78,7 @@ Chosen for a later stage; uploads currently restart from zero (option A).
 - [ ] **Parsing & analysis — confirmed by the user 2026-10-07** (D18, D19)
       Fixtures: backend/tests/fixtures/statements. Must not delete stored files (D16).
   - [x] 7a: CSV reader: file → rows of strings (quotes, CRLF, BOM). Pure, no DB. (D20)
-  - [ ] 7b: header detection + column mapping for 5 banks; else UNRECOGNIZED_FORMAT
+  - [x] 7b: header detection + column mapping for 5 banks; else UNRECOGNIZED_FORMAT (D21)
   - [ ] 7c: row normalization (dates, ₹ paise, Dr/Cr, footers) + per-row errors
   - [ ] 7d: background job runner + stages + progress in DB; `transactions`
         table; save rows; row-level dedupe (keep both CHAI POINT ₹20);

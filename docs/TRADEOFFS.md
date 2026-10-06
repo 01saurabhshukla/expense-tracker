@@ -383,6 +383,22 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Fix:** None planned; real bank narrations do contain stray quotes
   (e.g. `ABC"S STORE`), and later per-row validation catches bad values.
 
+### T50 — Alias-based header matching can misfire · Active · (D21)
+- **We accept:** Matching is by exact normalized name. A bank with an
+  unlisted heading ("Txn Particulars", "Withdrawal (Dr)") is rejected as
+  UNRECOGNIZED_FORMAT; a heading reused with a different meaning would be
+  mapped wrongly.
+- **Hurts when:** New banks or a bank changes its export format.
+- **Fix:** Add aliases as real exports arrive (one line each); later, a
+  "map your columns" screen for unknown formats.
+
+### T51 — The bank itself is not identified · Active · (D21)
+- **We accept:** We know the column layout, not which bank it came from
+  (preamble is ignored).
+- **Hurts when:** The summary or dashboard wants to show "HDFC ••123".
+- **Fix:** Look for bank names/IFSC prefixes (HDFC, SBIN, ICIC, UTIB, KKBK)
+  in the preamble when the summary step needs it.
+
 ## Validation & errors
 
 ### T11 — Zod silently drops unknown fields · Active · (D8)

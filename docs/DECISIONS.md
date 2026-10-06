@@ -316,6 +316,25 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   `MALFORMED_CSV` with a line number. `ParseError` (`src/parsing/errors.js`)
   has no HTTP status: it's recorded on the upload as the failure reason.
 
+## D21 — Header detection by column-name aliases, not per-bank code
+- **Decision:** `src/parsing/columns.js`. Each heading is normalized
+  (lowercase, punctuation → spaces) and matched against an alias list per
+  field (`date`, `valueDate`, `description`, `reference`, `debit`, `credit`,
+  `amount`, `direction`, `balance`, `balanceDirection`). Aliases are tried in
+  priority order and a column can be claimed only once. The first row (within
+  30) that names a date, a description and a usable amount layout is the
+  header; everything before it is preamble and ignored.
+- **Two layouts:** `split` (separate debit/credit columns: HDFC, SBI, ICICI,
+  Axis) and `amount-with-flag` (one amount + Dr/Cr column: Kotak). Anything
+  else → `ParseError UNRECOGNIZED_FORMAT`.
+- **Why:** One table of names covers all five banks and any future bank
+  that uses similar headings, without a code path per bank. Priority order
+  solves "Transaction Date" vs "Value Date"; claim-once + field order solves
+  Kotak's two "Dr / Cr" columns.
+- **Output:** `findHeader()` → `{ index, line, columns, layout }`;
+  `pickFields(cells, columns)` → raw strings by field name (normalizing them
+  is 7c).
+
 ---
 
 ## Revisit before deploying
