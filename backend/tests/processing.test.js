@@ -111,6 +111,17 @@ test('HDFC statement: queued → … → completed, all 54 transactions saved', 
   assert.deepEqual(rows[0], {
     user_id: userId, line: 7, date: '2026-09-01', direction: 'debit', amount: 93645, balance: 4731355,
   });
+
+  // The summary describes the statement; every running balance adds up.
+  const { summary } = upload;
+  assert.deepEqual(summary.period, { from: '2026-09-01', to: '2026-09-30' });
+  assert.deepEqual(summary.totals, { count: 54, debitPaise: 8645103, creditPaise: 8891255, netPaise: 246152 });
+  assert.deepEqual(summary.byMonth.map((m) => m.month), ['2026-09']);
+  assert.equal(summary.byCategory.reduce((n, c) => n + c.count, 0), 54);
+  assert.equal(summary.balance.status, 'ok');
+  assert.equal(summary.balance.checkedRows, 53);
+  assert.equal(summary.balance.openingPaise, 4825000); // ₹48,250.00
+  assert.equal(summary.balance.closingPaise, 5071152);
 });
 
 test('every bank format is processed to completion', async () => {
@@ -122,6 +133,8 @@ test('every bank format is processed to completion', async () => {
     assert.equal(upload.stage, 'completed', `${name}: ${JSON.stringify(upload.error)}`);
     assert.equal(upload.progress.transactionsSaved, expected[name], name);
     assert.equal((await transactionsFor(upload.id)).length, expected[name], name);
+    // Every bank's running balance adds up: no row lost or misread.
+    assert.equal(upload.summary.balance.status, 'ok', `${name}: ${JSON.stringify(upload.summary.balance)}`);
   }
 });
 
@@ -134,6 +147,10 @@ test('malformed rows: good rows saved, each bad row reported to the user', async
   assert.deepEqual(upload.rowErrors.map((e) => e.line), [3, 4, 5, 6, 7, 11, 12]);
   assert.ok(upload.rowErrors.every((e) => e.code && e.message));
   assert.deepEqual((await transactionsFor(upload.id)).map((t) => t.line), [2, 9, 13]);
+
+  // The rejected rows leave gaps, and the balance check points at them.
+  assert.equal(upload.summary.balance.status, 'mismatch');
+  assert.deepEqual(upload.summary.balance.mismatches.map((m) => m.line), [9, 13]);
 });
 
 test('files that are not statements fail with a reason the user can read', async () => {

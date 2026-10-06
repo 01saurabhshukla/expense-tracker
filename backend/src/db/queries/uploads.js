@@ -45,7 +45,7 @@ export async function listUploadsForUser(userId, { limit, offset }) {
 
 export async function findUploadForUser(userId, id) {
   const { rows } = await pool.query(
-    `SELECT ${PUBLIC_COLUMNS}, row_errors AS "rowErrors"
+    `SELECT ${PUBLIC_COLUMNS}, row_errors AS "rowErrors", summary
      FROM uploads WHERE id = $1 AND user_id = $2`,
     [id, userId],
   );
@@ -70,7 +70,7 @@ export async function findUploadByHash(userId, sha256) {
 export async function startProcessing(uploadId) {
   const { rows } = await pool.query(
     `UPDATE uploads u
-     SET stage = 'reading', progress = '{}'::jsonb, row_errors = '[]'::jsonb,
+     SET stage = 'reading', progress = '{}'::jsonb, row_errors = '[]'::jsonb, summary = NULL,
          error_code = NULL, error_message = NULL,
          attempts = attempts + 1, started_at = now(), finished_at = NULL, updated_at = now()
      FROM stored_files sf
@@ -91,13 +91,13 @@ export async function updateStage(db, uploadId, stage, progress = {}) {
   );
 }
 
-export async function markCompleted(db, uploadId, { progress, rowErrors }) {
+export async function markCompleted(db, uploadId, { progress, rowErrors, summary }) {
   await db.query(
     `UPDATE uploads
      SET stage = 'completed', progress = progress || $2::jsonb, row_errors = $3::jsonb,
-         finished_at = now(), updated_at = now()
+         summary = $4::jsonb, finished_at = now(), updated_at = now()
      WHERE id = $1`,
-    [uploadId, JSON.stringify(progress), JSON.stringify(rowErrors)],
+    [uploadId, JSON.stringify(progress), JSON.stringify(rowErrors), JSON.stringify(summary)],
   );
 }
 

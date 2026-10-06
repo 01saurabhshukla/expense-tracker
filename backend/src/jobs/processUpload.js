@@ -15,13 +15,15 @@ import { ParseError } from '../parsing/errors.js';
 import { addFingerprints } from '../parsing/fingerprint.js';
 import { categorizeTransactions } from '../categorize/categorize.js';
 import { findOverridesForUser } from '../db/queries/categoryOverrides.js';
+import { summarize } from '../summary/summarize.js';
 import { resolveStoredFile } from '../services/uploadStorage.js';
 import { log } from '../log.js';
 
 // How many row errors are kept on the upload; the total is in progress.rowErrors.
 const MAX_STORED_ROW_ERRORS = 100;
 
-// Runs one upload through: reading → validating → categorizing → saving → completed.
+// Runs one upload through:
+//   reading → validating → categorizing → summarizing → saving → completed.
 // Safe to run again for the same upload (retries, restarts): it starts by
 // resetting the upload, and saving replaces any rows from an earlier attempt.
 //
@@ -34,7 +36,8 @@ export async function processUpload(uploadId, { isFinalAttempt = true } = {}) {
   try {
     const parsed = await parseFile(upload);
     const categorized = await categorize(upload, parsed);
-    await save(upload, categorized);
+    const summary = await summarizeStatement(upload, categorized);
+    await save(upload, categorized, summary);
   } catch (err) {
     if (err instanceof ParseError) {
       // The file's content is the problem: retrying can't help.
@@ -107,10 +110,25 @@ async function categorize(upload, parsed) {
   return { ...parsed, transactions, categorizedBy: counts };
 }
 
+// Stage "summarizing": totals, by category, by month and the running-balance
+// check (src/summary). Pure; the stage is shown so the user sees where we are.
+async function summarizeStatement(upload, { transactions }) {
+  await updateStage(pool, upload.id, 'summarizing');
+  const summary = summarize(transactions);
+  if (summary.balance.status === 'mismatch') {
+    log('warn', 'Running balance does not add up', {
+      uploadId: upload.id,
+      mismatchCount: summary.balance.mismatchCount,
+      firstLine: summary.balance.mismatches[0].line,
+    });
+  }
+  return summary;
+}
+
 // Stage "saving": replace this upload's rows and mark it completed in ONE
 // database transaction, so the user never sees a half-saved statement or a
 // "completed" upload with missing rows.
-async function save(upload, { transactions, errors, skipped, categorizedBy }) {
+async function save(upload, { transactions, errors, skipped, categorizedBy }, summary) {
   await updateStage(pool, upload.id, 'saving', {
     transactionsFound: transactions.length,
     rowErrors: errors.length,
@@ -136,6 +154,7 @@ async function save(upload, { transactions, errors, skipped, categorizedBy }) {
         categorizedBy, // { user, rule, none }: which layer decided
       },
       rowErrors: errors.slice(0, MAX_STORED_ROW_ERRORS),
+      summary,
     });
   });
 }

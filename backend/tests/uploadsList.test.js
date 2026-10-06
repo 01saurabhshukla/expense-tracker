@@ -102,10 +102,12 @@ test('GET /uploads/:id returns my upload, without any storage details', async ()
   const body = await res.json();
 
   assert.equal(res.status, 200);
-  // The single-upload view adds the row errors list to what the list shows.
-  const { rowErrors, ...summary } = body.upload;
-  assert.deepEqual(summary, mine);
+  // The single-upload view adds the row errors and the summary to what the
+  // list shows. No worker runs in this file, so there's no summary yet.
+  const { rowErrors, summary, ...rest } = body.upload;
+  assert.deepEqual(rest, mine);
   assert.deepEqual(rowErrors, []);
+  assert.equal(summary, null);
   assert.equal(body.upload.storagePath, undefined);
   assert.equal(body.upload.sha256, undefined);
 });

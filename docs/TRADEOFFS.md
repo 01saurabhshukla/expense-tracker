@@ -488,6 +488,29 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Fix:** A per-user `custom_categories` table referenced alongside the
   built-in keys.
 
+### T64 — Uploads completed before 7f have no summary · Dev-only · (D26)
+- **We accept:** Migration 009 doesn't reprocess old uploads; their
+  `summary` is NULL.
+- **Hurts when:** Only on dev data processed before 7f.
+- **Fix:** Re-upload, or set those uploads back to `queued` and let the
+  sweeper pick them up.
+
+### T65 — A balance mismatch only warns · Active · (D26)
+- **We accept:** A statement whose running balance doesn't add up is still
+  saved and marked `completed`, with `summary.balance.status = 'mismatch'`.
+- **Hurts when:** A misread amount (not just a missing row) slips into the
+  dashboard totals while the user ignores the warning.
+- **Fix:** Have the frontend show the warning prominently with the lines; if
+  misreads ever happen in practice, fail the upload when mismatches are not
+  explained by row errors.
+
+### T66 — The summary is fixed at upload time · Active · (D26)
+- **We accept:** `byCategory` is a snapshot. If the user later corrects a
+  category, the stored summary still shows the old split.
+- **Hurts when:** The upload page and the dashboard disagree after a correction.
+- **Fix:** Recompute the summary when corrections touch that upload's rows
+  (transactions API step), or compute `byCategory` on read.
+
 ## Validation & errors
 
 ### T11 — Zod silently drops unknown fields · Active · (D8)

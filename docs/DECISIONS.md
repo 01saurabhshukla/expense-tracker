@@ -447,6 +447,29 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
 - **New stage:** `queued → reading → validating → categorizing → saving →
   completed`. Migration 008 rebuilt existing transactions (same approach as 007).
 
+### D26 — Statement summary and running-balance check (step 7f)
+- **What:** A new `summarizing` stage computes, from the categorized
+  transactions, `uploads.summary` (jsonb, migration 009):
+  `period {from,to}`, `totals {count, debitPaise, creditPaise, netPaise}`,
+  `byCategory` (only categories that appear, in list order), `byMonth`
+  (`YYYY-MM`, oldest first) and `balance`. Returned by `GET /uploads/:id`
+  only (not the list), saved in the same database transaction as `completed`.
+- **Scope = the file:** it counts every transaction found in the statement,
+  including rows skipped as duplicates of an overlapping upload. Questions
+  across statements belong to the dashboard API, which reads the database.
+- **Balance check:** each row must satisfy `balance = previous balance ±
+  amount`. Only neighbouring rows that both have a balance are compared.
+  File order is tried first; the reverse only if it has fewer mismatches
+  (`order: oldest_first | newest_first`). `status`: `ok`, `mismatch` (first
+  20 mismatches with expected/actual), or `unavailable` (no balances).
+  Opening balance = first balance with its own amount undone.
+- **A mismatch is a warning, not a failure:** the rows are still saved and
+  the upload completes; the user sees which lines don't add up (usually
+  the rows that were rejected as row errors). Logged as `warn`.
+- **Verified:** all five sample banks reconcile on every row; SBI's computed
+  opening balance equals the "Balance as on 1 Sep 2026" printed in its header.
+- **Old uploads** are not reprocessed: their `summary` stays NULL (T64).
+
 ---
 
 ## Revisit before deploying

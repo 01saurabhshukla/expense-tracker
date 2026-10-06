@@ -95,7 +95,7 @@ Chosen for a later stage; uploads currently restart from zero (option A).
         parse allowed
   - [x] 7e: categorization layers 1–3 + 5 (user corrections, type rules,
         merchant rules, Uncategorized); hand-labelled evaluation set + accuracy (D25)
-  - [ ] 7f: summary (totals, by category, by month) shown when `completed`;
+  - [x] 7f: summary (totals, by category, by month) shown when `completed`;
         include a running-balance check (flags gaps/misreads, as in the 7c tests)
   - [ ] 7g: `.xlsx` reader → same grid (reuses 7b–7f)
   - [ ] 7h: LLM layer 4 for leftovers (off by default), measured against 7e
