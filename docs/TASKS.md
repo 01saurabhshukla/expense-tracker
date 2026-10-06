@@ -80,9 +80,12 @@ Chosen for a later stage; uploads currently restart from zero (option A).
   - [x] 7a: CSV reader: file → rows of strings (quotes, CRLF, BOM). Pure, no DB. (D20)
   - [x] 7b: header detection + column mapping for 5 banks; else UNRECOGNIZED_FORMAT (D21)
   - [x] 7c: row normalization (dates, ₹ paise, Dr/Cr, footers) + per-row errors (D22)
-  - [ ] 7d: background job runner + stages + progress in DB; `transactions`
-        table; save rows; row-level dedupe (keep both CHAI POINT ₹20);
-        re-upload of a failed parse allowed; restart recovery
+  - [x] 7d-1: BullMQ worker + stages/progress/errors in Postgres;
+        `transactions` table; idempotent save; retries; sweep recovery (D23)
+  - [ ] 7d-2: row-level dedupe, fingerprint option A (bank reference + date +
+        direction + amount + balance; description only as fallback;
+        occurrence number) — keep both CHAI POINT ₹20; re-upload of a failed
+        parse allowed
   - [ ] 7e: categorization layers 1–3 + 5 (user corrections, type rules,
         merchant rules, Uncategorized); hand-labelled evaluation set + accuracy
   - [ ] 7f: summary (totals, by category, by month) shown when `completed`;

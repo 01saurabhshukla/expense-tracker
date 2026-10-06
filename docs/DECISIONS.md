@@ -269,9 +269,7 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   and a dangerous file must be refused before it's ever stored); row-level
   validation (dates, amounts, bank format) is the background `validating`
   stage.
-- **Runner:** in-process job runner with a small concurrency limit (e.g. 2).
-  On startup, uploads stuck mid-stage are re-queued (safe: files are never
-  deleted, D16, and processing must be repeatable). No Redis/queue service.
+- **Runner:** ~~in-process job runner~~ **Superseded by D23 (BullMQ + Redis).**
 - **Bad rows:** good rows are saved; bad rows are reported with row number and
   reason ("52 imported, 2 skipped"). Default chosen because the user didn't
   pick; matches the sample README's expectation.
@@ -363,6 +361,34 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   balances reconcile on every row; the malformed sample yields exactly its 3
   valid rows and 7 specific errors.
 
+## D23 — Background jobs with BullMQ on Redis; Postgres stays the source of truth
+- **Decision (user's choice):** BullMQ queue `upload-processing` on the local
+  Redis (no password, bound to 127.0.0.1, `noeviction`). The API adds a job
+  after an upload is accepted; a separate worker process (`npm run worker`)
+  runs `processUpload()` with concurrency 2.
+- **Job rules:** `jobId = uploadId` (adding the same upload twice is a no-op);
+  3 attempts with exponential backoff for unexpected errors; a `ParseError`
+  throws `UnrecoverableError` (no retries: a broken file stays broken).
+- **Stages live in Postgres** (`uploads.stage`, `progress`, `error_code`,
+  `error_message`, `row_errors`, `attempts`, `started_at`, `finished_at`).
+  `GET /uploads/:id` reads only Postgres. Redis is just the to-do list.
+- **Recovery:** BullMQ re-runs jobs whose worker died (stalled jobs). A sweep
+  at worker start and every 60s re-adds every upload that isn't `completed`
+  or `failed` — covers Redis restarts (no persistence) and failed enqueues.
+- **Idempotent processing:** `startProcessing` claims only unfinished uploads
+  and resets them; saving deletes the upload's earlier rows, inserts the new
+  ones and marks `completed` in ONE transaction.
+- **Enqueue failure never deletes an accepted file:** the enqueue happens
+  after the file is accepted and outside the cleanup `try/catch`; a failure
+  is logged and the sweep picks it up.
+- **BullMQ 6 specifics:** `ioredis` must be installed separately and passed
+  as a ready client in ESM. API connection fails fast
+  (`enableOfflineQueue: false`); worker connection uses
+  `maxRetriesPerRequest: null` (required by BullMQ).
+- **Bug found by tests:** the CSV reader used `.pipe()`, which doesn't forward
+  read errors; a missing file made the job wait forever. Fixed by forwarding
+  the source stream's error to the parser; regression test added.
+
 ---
 
 ## Revisit before deploying
@@ -381,6 +407,9 @@ Things that are fine for local dev but must change for production.
 - [ ] **NODE_ENV=production** on EC2, or the refresh cookie lacks `Secure` (T30).
 - [ ] **nginx `client_max_body_size 11m`**: caps upload bodies before they reach Node (T36).
 - [ ] **Encrypted EBS volume** for `storage/` (T34).
+- [ ] **Redis on EC2:** `bind 127.0.0.1`, `protected-mode yes`,
+      `maxmemory-policy noeviction`; port 6379 closed in the security group (T55).
+- [ ] **pm2 runs two processes:** `npm start` (API) and `npm run worker`.
 
 ## Open questions
 

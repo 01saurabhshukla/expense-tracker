@@ -107,6 +107,11 @@ test('a single enormous cell → ParseError instead of eating memory', async () 
   await assert.rejects(readAll(file), { code: 'MALFORMED_CSV' });
 });
 
+test('a file that cannot be read throws instead of hanging forever', async () => {
+  // Regression: with a plain .pipe(), a missing file left the loop waiting.
+  await assert.rejects(readAll(path.join(scratch, 'does-not-exist.csv')), { code: 'ENOENT' });
+});
+
 test('files the upload gate let through are read, not judged', async () => {
   const header = await fixture('edge_header_only.csv');
   assert.equal(header.length, 1);

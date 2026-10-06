@@ -6,14 +6,13 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { isolateTestEnv } from './helpers/testEnv.js';
 
 const MAX_BYTES = 64 * 1024;
-const uploadDir = await mkdtemp(path.join(tmpdir(), 'uploads-edge-test-'));
-process.env.UPLOAD_DIR = uploadDir;
-process.env.UPLOAD_MAX_BYTES = String(MAX_BYTES);
+const testEnv = await isolateTestEnv('uploads-edge-test', { UPLOAD_MAX_BYTES: String(MAX_BYTES) });
+const { uploadDir } = testEnv;
 
 const { createApp } = await import('../src/app.js');
 const { pool } = await import('../src/db/pool.js');
@@ -42,7 +41,7 @@ after(async () => {
   await pool.query('DELETE FROM users WHERE email LIKE $1', [`%${TEST_DOMAIN}`]);
   await pool.end();
   server.close();
-  await rm(uploadDir, { recursive: true, force: true });
+  await testEnv.cleanup();
 });
 
 // ---------- helpers ----------
@@ -220,7 +219,7 @@ test('all five bank statements pass the upload gate', async () => {
   for (const name of ['hdfc_sep2026.csv', 'sbi_sep2026.csv', 'icici_sep2026.csv', 'axis_sep2026.csv', 'kotak_sep2026.csv']) {
     const res = await uploadFixture(name);
     assert.equal(res.status, 201, name);
-    assert.equal(res.body.upload.status, 'received', name);
+    assert.equal(res.body.upload.stage, 'queued', name);
   }
 });
 

@@ -24,6 +24,16 @@ export async function moveToStorage(tempPath, uploadId) {
   return { storagePath, absolutePath };
 }
 
+// Turns a stored relative path (from stored_files) back into an absolute
+// one, refusing anything that would point outside the storage folder.
+export function resolveStoredFile(storagePath) {
+  const absolutePath = path.resolve(ROOT, storagePath);
+  if (!absolutePath.startsWith(ROOT + path.sep)) {
+    throw new Error(`Stored path escapes the storage folder: ${storagePath}`);
+  }
+  return absolutePath;
+}
+
 // Only for files that never became an accepted upload (aborted, rejected,
 // or failed before their DB rows were saved). Accepted files are never deleted.
 export async function removeFile(filePath) {

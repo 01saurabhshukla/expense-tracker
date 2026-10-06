@@ -5,13 +5,13 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, readdir, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import yazl from 'yazl';
+import { isolateTestEnv } from './helpers/testEnv.js';
 
-const uploadDir = await mkdtemp(path.join(tmpdir(), 'xlsx-test-'));
-process.env.UPLOAD_DIR = uploadDir;
+const testEnv = await isolateTestEnv('xlsx-test');
+const { uploadDir } = testEnv;
 
 const { createApp } = await import('../src/app.js');
 const { pool } = await import('../src/db/pool.js');
@@ -36,7 +36,7 @@ after(async () => {
   await pool.query('DELETE FROM users WHERE email LIKE $1', [`%${TEST_DOMAIN}`]);
   await pool.end();
   server.close();
-  await rm(uploadDir, { recursive: true, force: true });
+  await testEnv.cleanup();
 });
 
 // ---------- helpers ----------
@@ -119,7 +119,7 @@ test('a real .xlsx workbook is accepted with format "xlsx"', async () => {
   const res = await upload(await buildZip(minimalWorkbook()));
   assert.equal(res.status, 201);
   assert.equal(res.body.upload.format, 'xlsx');
-  assert.equal(res.body.upload.status, 'received');
+  assert.equal(res.body.upload.stage, 'queued');
 });
 
 test('.XLSX in capitals is the same format', async () => {

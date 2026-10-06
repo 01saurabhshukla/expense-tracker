@@ -3,12 +3,9 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
+import { isolateTestEnv } from './helpers/testEnv.js';
 
-const uploadDir = await mkdtemp(path.join(tmpdir(), 'uploads-list-test-'));
-process.env.UPLOAD_DIR = uploadDir;
+const testEnv = await isolateTestEnv('uploads-list-test');
 
 const { createApp } = await import('../src/app.js');
 const { pool } = await import('../src/db/pool.js');
@@ -39,7 +36,7 @@ after(async () => {
   await pool.query('DELETE FROM users WHERE email LIKE $1', [`%${TEST_DOMAIN}`]);
   await pool.end();
   server.close();
-  await rm(uploadDir, { recursive: true, force: true });
+  await testEnv.cleanup();
 });
 
 function postJson(urlPath, body) {
@@ -105,7 +102,10 @@ test('GET /uploads/:id returns my upload, without any storage details', async ()
   const body = await res.json();
 
   assert.equal(res.status, 200);
-  assert.deepEqual(body.upload, mine);
+  // The single-upload view adds the row errors list to what the list shows.
+  const { rowErrors, ...summary } = body.upload;
+  assert.deepEqual(summary, mine);
+  assert.deepEqual(rowErrors, []);
   assert.equal(body.upload.storagePath, undefined);
   assert.equal(body.upload.sha256, undefined);
 });

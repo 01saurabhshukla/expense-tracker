@@ -77,16 +77,26 @@ export function normalizeRow({ line, cells }, header) {
 
 // Runs every data row and collects the results. A file with no valid
 // transaction at all is a failure of the whole file, not a partial import.
-export function normalizeRows(dataRows, header) {
+//
+// `dataRows` can be an array or an async stream of rows (straight from a
+// reader), so a big file is checked as it's read. `onProgress` is called
+// every `progressEvery` rows with the running counts.
+export async function normalizeRows(dataRows, header, { onProgress, progressEvery = 500 } = {}) {
   const transactions = [];
   const errors = [];
   let skipped = 0;
+  let rowsRead = 0;
 
-  for (const row of dataRows) {
+  for await (const row of dataRows) {
     const result = normalizeRow(row, header);
     if (result.kind === 'transaction') transactions.push(result.transaction);
     else if (result.kind === 'error') errors.push(result.error);
     else skipped++;
+
+    rowsRead++;
+    if (onProgress && rowsRead % progressEvery === 0) {
+      await onProgress({ rowsRead, transactionsFound: transactions.length, rowErrors: errors.length });
+    }
   }
 
   if (transactions.length === 0) {

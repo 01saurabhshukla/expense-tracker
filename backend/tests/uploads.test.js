@@ -3,13 +3,13 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, readdir, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { readdir } from 'node:fs/promises';
 import path from 'node:path';
+import { isolateTestEnv } from './helpers/testEnv.js';
 
 // Must be set before the app is imported, because env.js reads it on import.
-const uploadDir = await mkdtemp(path.join(tmpdir(), 'uploads-test-'));
-process.env.UPLOAD_DIR = uploadDir;
+const testEnv = await isolateTestEnv('uploads-test');
+const { uploadDir } = testEnv;
 
 const { createApp } = await import('../src/app.js');
 const { pool } = await import('../src/db/pool.js');
@@ -35,7 +35,7 @@ after(async () => {
   await pool.query('DELETE FROM users WHERE email LIKE $1', [`%${TEST_DOMAIN}`]);
   await pool.end();
   server.close();
-  await rm(uploadDir, { recursive: true, force: true });
+  await testEnv.cleanup();
 });
 
 function postJson(urlPath, body) {
@@ -65,7 +65,7 @@ test('a valid CSV is stored and returns 201', async () => {
   assert.equal(res.status, 201);
   assert.equal(body.upload.originalFilename, 'statement.csv');
   assert.equal(body.upload.format, 'csv');
-  assert.equal(body.upload.status, 'received');
+  assert.equal(body.upload.stage, 'queued');
   assert.ok((await filesIn('files')).includes(body.upload.id));
 });
 

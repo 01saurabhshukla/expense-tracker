@@ -12,6 +12,8 @@ import { uploadIdSchema } from '../schemas/uploads.js';
 import { assertUtf8Text } from './fileChecks.js';
 import { assertSafeXlsx } from './xlsxChecks.js';
 import { moveToStorage, removeFile } from './uploadStorage.js';
+import { enqueueUpload } from '../jobs/uploadQueue.js';
+import { log } from '../log.js';
 
 const PG_UNIQUE_VIOLATION = '23505';
 
@@ -21,6 +23,22 @@ const CONTENT_CHECKS = { csv: assertUtf8Text, xlsx: assertSafeXlsx };
 // `received` comes from receiveSingleFile: a temp file that arrived completely
 // and within the size limit, but hasn't been checked yet.
 export async function createUpload(userId, received) {
+  const upload = await acceptFile(userId, received);
+
+  // Outside acceptFile's try/catch on purpose: the file is already accepted
+  // and must never be deleted because Redis had a hiccup. If enqueueing
+  // fails, the upload stays 'queued' and the worker's sweep picks it up.
+  try {
+    await enqueueUpload(upload.id);
+  } catch (err) {
+    log('warn', 'Could not enqueue upload; the sweep will retry', { uploadId: upload.id, error: err.message });
+  }
+  return upload;
+}
+
+// Checks the received temp file and, if it passes, stores it and saves the
+// upload + stored_files rows. Any failure removes the file.
+async function acceptFile(userId, received) {
   const { tempPath, sizeBytes, sha256, originalFilename, format } = received;
   let absolutePath = null;
 

@@ -16,18 +16,23 @@ const MAX_RECORD_BYTES = 64 * 1024;
 // is the next stage's job. The only thing it rejects is text that isn't
 // valid CSV at all, like a quote that is never closed.
 export async function* readCsvRows(filePath) {
-  const parser = createReadStream(filePath).pipe(
-    parse({
-      bom: true, // drop the invisible UTF-8 marker Excel puts at the start
-      relax_column_count: true, // rows may have different numbers of cells
-      // A stray " inside an unquoted cell (e.g. ABC"S STORE) is kept as a
-      // character instead of failing the whole file.
-      relax_quotes: true,
-      skip_empty_lines: true, // truly empty lines only; ",,,," still comes through
-      info: true, // gives us each row's line number
-      max_record_size: MAX_RECORD_BYTES,
-    }),
-  );
+  const parser = parse({
+    bom: true, // drop the invisible UTF-8 marker Excel puts at the start
+    relax_column_count: true, // rows may have different numbers of cells
+    // A stray " inside an unquoted cell (e.g. ABC"S STORE) is kept as a
+    // character instead of failing the whole file.
+    relax_quotes: true,
+    skip_empty_lines: true, // truly empty lines only; ",,,," still comes through
+    info: true, // gives us each row's line number
+    max_record_size: MAX_RECORD_BYTES,
+  });
+
+  // .pipe() does NOT pass errors along: if the file can't be read (missing,
+  // permissions, disk error) the parser would wait for data forever and the
+  // loop below would never end. Forward the error so the loop throws instead.
+  const source = createReadStream(filePath);
+  source.on('error', (err) => parser.destroy(err));
+  source.pipe(parser);
 
   try {
     for await (const { record, info } of parser) {

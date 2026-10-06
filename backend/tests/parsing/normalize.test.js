@@ -107,10 +107,10 @@ test('header-only file → ParseError NO_VALID_TRANSACTIONS', async () => {
   });
 });
 
-test('all rows bad → NO_VALID_TRANSACTIONS with the first errors attached', () => {
+test('all rows bad → NO_VALID_TRANSACTIONS with the first errors attached', async () => {
   const header = { width: 3, layout: LAYOUTS.SPLIT, columns: { date: 0, description: 1, debit: 2, credit: 3 } };
   const rows = [{ line: 2, cells: ['99/99/99', 'X', '10.00', ''] }];
-  assert.throws(() => normalizeRows(rows, header), (err) => {
+  await assert.rejects(normalizeRows(rows, header), (err) => {
     assert.equal(err.code, 'NO_VALID_TRANSACTIONS');
     assert.equal(err.details.errors[0].code, 'INVALID_DATE');
     return true;

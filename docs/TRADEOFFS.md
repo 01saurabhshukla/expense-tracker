@@ -335,14 +335,37 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 
 ## Background processing & categorization
 
-### T44 — In-process job runner, no queue service · Planned · (D18)
-- **We accept:** Jobs run inside the Node process. A crash or restart stops
-  in-flight jobs; they're re-queued on startup and re-run from the start.
-  Only works with one backend server.
-- **Hurts when:** Several EC2 instances (each would pick up the same job),
-  or very long jobs repeatedly interrupted by deploys.
-- **Fix:** Postgres-backed queue with `SELECT … FOR UPDATE SKIP LOCKED`
-  (works across servers, no new infrastructure), or BullMQ + Redis.
+### T44 — ~~In-process job runner~~ · Superseded by D23 (BullMQ)
+
+### T55 — Redis has no password · Dev-only (and EC2 with care) · (D23)
+- **We accept:** Anyone who can reach Redis's port can read and delete jobs
+  or run any Redis command (user's choice). Safe locally because Redis only
+  listens on 127.0.0.1.
+- **Hurts when:** Redis is ever reachable from outside the machine (a wrong
+  `bind`, an open security group): a known, actively scanned attack target.
+- **Fix:** On EC2 keep `bind 127.0.0.1` + `protected-mode yes` and never open
+  6379; if Redis moves to its own server, add a password (`requirepass`/ACL)
+  and TLS.
+
+### T56 — Redis doesn't persist the queue · Active · (D23)
+- **We accept:** `appendonly no` — a Redis restart loses waiting jobs.
+- **Hurts when:** Only as a delay: the sweep re-adds unfinished uploads
+  within 60s of the worker running. Job history in Redis is lost.
+- **Fix:** Enable AOF if job history ever matters.
+
+### T57 — One more service to run and monitor · Active · (D23)
+- **We accept:** Uploads are accepted while Redis or the worker is down, but
+  stay `queued` until both are back. Deploys now involve two processes.
+- **Hurts when:** The worker crashes unnoticed → uploads queue up silently.
+- **Fix:** pm2 auto-restart; later, a `/health` check that reports queue
+  depth and the oldest `queued` upload's age (metrics, pending).
+
+### T58 — Whole statement held in memory while parsing · Active · (D23)
+- **We accept:** Transactions are collected in an array before saving
+  (≈ 10 MB file → tens of MB of objects).
+- **Hurts when:** Many large files at once on a small instance.
+- **Fix:** 7i: save in batches while streaming (needs a "replace previous
+  attempt" strategy that still keeps the all-or-nothing completed state).
 
 ### T45 — Polling instead of push · Planned · (D18)
 - **We accept:** The frontend asks every ~2s. Up to 2s delay before it sees
