@@ -29,10 +29,19 @@ export function addFingerprints(transactions) {
 }
 
 function baseKey({ date, direction, amountPaise, reference, balancePaise, description }) {
-  const parts = [date, direction, amountPaise, reference ?? '', balancePaise ?? ''];
+  const parts = [date, direction, amountPaise, comparableReference(reference), balancePaise ?? ''];
   if (reference === null && balancePaise === null) {
     parts.push(description.toUpperCase().replace(/\s+/g, ' ').trim());
   }
   // JSON keeps the parts unambiguous: no value can fake a separator.
   return JSON.stringify(parts);
+}
+
+// Excel stores an all-digit reference as a number, so "0000006266119255" in
+// the CSV export is 6266119255 in the .xlsx of the same statement. Leading
+// zeros are dropped for the comparison only; the stored reference is
+// untouched.
+function comparableReference(reference) {
+  if (reference === null) return '';
+  return /^\d+$/.test(reference) ? reference.replace(/^0+(?=\d)/, '') : reference;
 }

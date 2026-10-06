@@ -15,8 +15,16 @@ All data here is **fake**: generated names, account numbers, and transactions. T
 | `edge_empty.csv` | 0 bytes | Empty file rejection |
 | `edge_unrecognized_format.csv` | A valid CSV that isn't a bank statement | `UNRECOGNIZED_FORMAT` |
 | `edge_corrupt_binary.csv` | Random bytes | Corrupt file handling |
+| `xlsx/<bank>_sep2026.xlsx` | The five bank CSVs above, opened in LibreOffice Calc (Indian locale, so dates are read day-first) and saved as `.xlsx`: dates become date serials, amounts and all-digit references become numbers | The `.xlsx` reader yields the same transactions and fingerprints as the CSV |
 | `generate-large-csv.js` | `node generate-large-csv.js 200000 large.csv` | Streaming and performance |
 
 The HDFC file contains **two identical ₹20 CHAI POINT payments on 10 Sep**. Both are genuine, and only their closing balances differ, so your dedupe hash must keep both.
 
 Uploading `hdfc_sep2026.csv` twice should return `409 DUPLICATE_FILE`.
+
+To regenerate the `.xlsx` files:
+
+```
+soffice --headless --infilter="CSV:44,34,76,1,,16393" --convert-to xlsx --outdir xlsx *_sep2026.csv
+```
+(`16393` = English (India): day-first dates.)

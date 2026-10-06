@@ -9,6 +9,7 @@ import {
 import { deleteTransactionsForUpload, insertTransactions } from '../db/queries/transactions.js';
 import { pool } from '../db/pool.js';
 import { readCsvRows } from '../parsing/readers/csvReader.js';
+import { readXlsxRows } from '../parsing/readers/xlsxReader.js';
 import { findHeader, MAX_ROWS_BEFORE_HEADER } from '../parsing/columns.js';
 import { normalizeRows } from '../parsing/normalize.js';
 import { ParseError } from '../parsing/errors.js';
@@ -70,11 +71,10 @@ export async function processUpload(uploadId, { isFinalAttempt = true } = {}) {
 }
 
 async function parseFile(upload) {
-  if (upload.format !== 'csv') {
-    throw new ParseError('FORMAT_NOT_SUPPORTED_YET', 'Excel (.xlsx) statements can be uploaded but not read yet.');
-  }
-
-  const rows = readCsvRows(resolveStoredFile(upload.storagePath));
+  // Both readers yield the same { line, cells } rows; everything after this
+  // line is the same for CSV and Excel.
+  const readRows = upload.format === 'xlsx' ? readXlsxRows : readCsvRows;
+  const rows = readRows(resolveStoredFile(upload.storagePath));
 
   // Stage "reading": pull the first rows to find the header. `rows` is a
   // generator, so pulling with next() and then continuing with `yield* rows`

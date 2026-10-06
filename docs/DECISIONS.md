@@ -470,6 +470,37 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   opening balance equals the "Balance as on 1 Sep 2026" printed in its header.
 - **Old uploads** are not reprocessed: their `summary` stays NULL (T64).
 
+### D27 — Our own streaming `.xlsx` reader on `sax` (step 7g)
+- **What:** `src/parsing/readers/xlsxReader.js` turns the first *visible*
+  worksheet into the same `{ line, cells }` rows as the CSV reader, so header
+  detection, normalizing, categorizing and the summary are reused unchanged.
+  `processUpload` picks the reader by `upload.format`.
+- **Why not a library:** the npm `xlsx` (SheetJS) package is frozen at an
+  old version with known advisories; ExcelJS is large for reading one grid.
+  An `.xlsx` is a zip (already opened safely by `yauzl` in the gate) of XML;
+  reading cells needs ~300 lines on top of `sax` (zero dependencies,
+  maintained), and every rule is visible and tested.
+- **How:** `workbook.xml` + its rels → the sheet's path (must stay inside the
+  zip); `sharedStrings.xml` → text table (phonetic `<rPh>` ignored);
+  `styles.xml` → which cell styles are dates (built-in ids + custom codes
+  containing d/y); the sheet XML is **streamed** and rows are yielded per
+  chunk. Namespace prefixes (`x:row`) are stripped.
+- **Cells become what a CSV export would show:** date serials →
+  `DD/MM/YYYY` (1900 and 1904 systems), numbers rounded to Excel's 15
+  significant digits (`654.75000000000011` → `654.75`), booleans → TRUE/FALSE.
+  Line numbers are Excel row numbers, so errors point at the row the user sees.
+- **Strict:** strict XML, any `DOCTYPE` refused (no entity expansion at all),
+  invalid UTF-8 refused, rows must go down the sheet, values beyond column
+  200 or cells over 64 KB refused → `MALFORMED_XLSX`; no visible worksheet →
+  `NO_WORKSHEET`. Unexpected errors are NOT reported as a broken file: they
+  are logged and retried like any internal error.
+- **Fingerprint fix:** Excel stores all-digit references as numbers, losing
+  leading zeros (`0000006266119255` → `6266119255`). The fingerprint now
+  compares all-digit references without leading zeros (the stored reference
+  is unchanged), so a statement's CSV and `.xlsx` dedupe against each other.
+- **Verified:** the five bank CSVs saved as `.xlsx` by LibreOffice (Indian
+  locale) give identical transactions and fingerprints to the CSVs.
+
 ---
 
 ## Revisit before deploying

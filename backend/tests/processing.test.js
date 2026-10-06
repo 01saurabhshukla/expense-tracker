@@ -59,7 +59,7 @@ function postJson(urlPath, body) {
 
 async function uploadFixture(name) {
   const form = new FormData();
-  form.append('file', new Blob([await readFile(path.join(FIXTURES, name))]), name);
+  form.append('file', new Blob([await readFile(path.join(FIXTURES, name))]), path.basename(name));
   const res = await fetch(`${baseUrl}/uploads`, {
     method: 'POST',
     headers: { authorization: `Bearer ${token}` },
@@ -136,6 +136,22 @@ test('every bank format is processed to completion', async () => {
     // Every bank's running balance adds up: no row lost or misread.
     assert.equal(upload.summary.balance.status, 'ok', `${name}: ${JSON.stringify(upload.summary.balance)}`);
   }
+});
+
+test('an Excel statement goes through the same pipeline; its CSV twin already saved every row', async () => {
+  // The HDFC CSV was processed by the first test, for the same user. The .xlsx
+  // is a different file (no 409) but the same transactions.
+  const { upload } = await processFixture('xlsx/hdfc_sep2026.xlsx');
+
+  assert.equal(upload.stage, 'completed', JSON.stringify(upload.error));
+  assert.equal(upload.format, 'xlsx');
+  assert.equal(upload.progress.transactionsFound, 54);
+  assert.equal(upload.progress.transactionsSaved, 0);
+  assert.equal(upload.progress.duplicatesSkipped, 54);
+  assert.deepEqual(upload.progress.categorizedBy, { user: 0, rule: 54, none: 0 });
+  // The summary describes the file, so it matches the CSV's exactly.
+  assert.deepEqual(upload.summary.totals, { count: 54, debitPaise: 8645103, creditPaise: 8891255, netPaise: 246152 });
+  assert.equal(upload.summary.balance.status, 'ok');
 });
 
 test('malformed rows: good rows saved, each bad row reported to the user', async () => {

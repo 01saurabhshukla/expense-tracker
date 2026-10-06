@@ -511,6 +511,34 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Fix:** Recompute the summary when corrections touch that upload's rows
   (transactions API step), or compute `byCategory` on read.
 
+### T67 — Only the first visible worksheet is read · Active · (D27)
+- **We accept:** Other sheets are ignored, even if they hold more transactions.
+- **Hurts when:** A bank puts each month (or a cover page) on its own sheet.
+- **Fix:** Read every visible sheet whose header is recognised, or let the
+  user pick the sheet.
+
+### T68 — Shared strings are held in memory · Active · (D27)
+- **We accept:** The whole text table is loaded before the sheet streams
+  (bounded by the gate: ≤ 50 MB uncompressed).
+- **Hurts when:** A very large workbook with mostly unique text uses a lot of
+  worker memory.
+- **Fix:** Looked at again in 7i (large files): measure with a 200k-row
+  workbook; if needed, a lower size limit for `.xlsx`.
+
+### T69 — Excel's 15-digit limit on numeric references · Active · (D27)
+- **We accept:** A reference stored by Excel as a number keeps only 15
+  significant digits; a 16+ digit reference is already changed in the file.
+- **Hurts when:** The CSV and the `.xlsx` of the same statement have such
+  references: their fingerprints differ and those rows are saved twice.
+- **Fix:** Banks' own `.xlsx` exports usually store references as text; if
+  not, compare such rows on date + amount + balance only.
+
+### T70 — Fingerprints saved before 7g used references with leading zeros · Dev-only · (D27)
+- **We accept:** Rows saved earlier keep their old fingerprint.
+- **Hurts when:** Re-importing an overlapping statement on dev data saved
+  before 7g could store some rows twice.
+- **Fix:** Reprocess old uploads (set them to `queued`), or start dev data fresh.
+
 ## Validation & errors
 
 ### T11 — Zod silently drops unknown fields · Active · (D8)
