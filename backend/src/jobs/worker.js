@@ -3,10 +3,14 @@ import { env } from '../config/env.js';
 import { createWorkerConnection } from './redis.js';
 import { UPLOAD_QUEUE_NAME, enqueueUpload } from './uploadQueue.js';
 import { processUpload } from './processUpload.js';
-import { findUnfinishedUploadIds } from '../db/queries/uploads.js';
+import { findStaleUnfinishedUploadIds } from '../db/queries/uploads.js';
 import { log } from '../log.js';
 
 const SWEEP_INTERVAL_MS = 60_000;
+// Only uploads untouched for this long are considered lost. Shorter would
+// re-add uploads that are about to be processed normally (and, in tests that
+// share one database, other test files' uploads).
+export const SWEEP_STALE_AFTER_MS = 60_000;
 
 // Starts processing uploads from the queue. Returns { close } for shutdown.
 export async function startUploadWorker() {
@@ -33,7 +37,8 @@ export async function startUploadWorker() {
   // Postgres is the source of truth; Redis is only the to-do list. If Redis
   // lost its jobs (restart without persistence) or an enqueue failed while
   // Redis was down, unfinished uploads would sit forever. The sweep re-adds
-  // them; uploads already queued are untouched because jobId = uploadId.
+  // the ones that have been stuck for a while; uploads already queued are
+  // untouched because jobId = uploadId.
   await sweepUnfinishedUploads();
   const timer = setInterval(() => {
     sweepUnfinishedUploads().catch((err) => log('error', 'Upload sweep failed', { error: err.message }));
@@ -52,7 +57,7 @@ export async function startUploadWorker() {
 }
 
 export async function sweepUnfinishedUploads() {
-  const ids = await findUnfinishedUploadIds();
+  const ids = await findStaleUnfinishedUploadIds(SWEEP_STALE_AFTER_MS);
   for (const id of ids) await enqueueUpload(id);
   if (ids.length > 0) log('info', 'Swept unfinished uploads into the queue', { count: ids.length });
 }

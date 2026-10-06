@@ -13,13 +13,15 @@ import { findHeader, MAX_ROWS_BEFORE_HEADER } from '../parsing/columns.js';
 import { normalizeRows } from '../parsing/normalize.js';
 import { ParseError } from '../parsing/errors.js';
 import { addFingerprints } from '../parsing/fingerprint.js';
+import { categorizeTransactions } from '../categorize/categorize.js';
+import { findOverridesForUser } from '../db/queries/categoryOverrides.js';
 import { resolveStoredFile } from '../services/uploadStorage.js';
 import { log } from '../log.js';
 
 // How many row errors are kept on the upload; the total is in progress.rowErrors.
 const MAX_STORED_ROW_ERRORS = 100;
 
-// Runs one upload through: reading → validating → saving → completed.
+// Runs one upload through: reading → validating → categorizing → saving → completed.
 // Safe to run again for the same upload (retries, restarts): it starts by
 // resetting the upload, and saving replaces any rows from an earlier attempt.
 //
@@ -30,8 +32,9 @@ export async function processUpload(uploadId, { isFinalAttempt = true } = {}) {
   if (!upload) return; // deleted, or already finished by an earlier job
 
   try {
-    const result = await parseFile(upload);
-    await save(upload, result);
+    const parsed = await parseFile(upload);
+    const categorized = await categorize(upload, parsed);
+    await save(upload, categorized);
   } catch (err) {
     if (err instanceof ParseError) {
       // The file's content is the problem: retrying can't help.
@@ -92,10 +95,22 @@ async function parseFile(upload) {
   });
 }
 
+// Stage "categorizing": the user's own corrections first, then the rules
+// (src/categorize). Pure apart from loading the corrections once.
+async function categorize(upload, parsed) {
+  await updateStage(pool, upload.id, 'categorizing', {
+    transactionsFound: parsed.transactions.length,
+    rowErrors: parsed.errors.length,
+  });
+  const overrides = await findOverridesForUser(upload.userId);
+  const { transactions, counts } = categorizeTransactions(parsed.transactions, overrides);
+  return { ...parsed, transactions, categorizedBy: counts };
+}
+
 // Stage "saving": replace this upload's rows and mark it completed in ONE
 // database transaction, so the user never sees a half-saved statement or a
 // "completed" upload with missing rows.
-async function save(upload, { transactions, errors, skipped }) {
+async function save(upload, { transactions, errors, skipped, categorizedBy }) {
   await updateStage(pool, upload.id, 'saving', {
     transactionsFound: transactions.length,
     rowErrors: errors.length,
@@ -118,6 +133,7 @@ async function save(upload, { transactions, errors, skipped }) {
         duplicatesSkipped: transactions.length - saved,
         rowErrors: errors.length,
         skippedRows: skipped,
+        categorizedBy, // { user, rule, none }: which layer decided
       },
       rowErrors: errors.slice(0, MAX_STORED_ROW_ERRORS),
     });

@@ -373,8 +373,13 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   `error_message`, `row_errors`, `attempts`, `started_at`, `finished_at`).
   `GET /uploads/:id` reads only Postgres. Redis is just the to-do list.
 - **Recovery:** BullMQ re-runs jobs whose worker died (stalled jobs). A sweep
-  at worker start and every 60s re-adds every upload that isn't `completed`
-  or `failed` — covers Redis restarts (no persistence) and failed enqueues.
+  at worker start and every 60s re-adds uploads that aren't `completed` or
+  `failed` **and haven't changed for 60s** (`updated_at` is refreshed by every
+  stage/progress update) — covers Redis restarts (no persistence) and failed
+  enqueues. *Amended in 7e:* the first version swept every unfinished upload,
+  including ones about to be processed normally; in tests sharing one
+  database, a worker picked up another test file's uploads, couldn't find
+  their files, and failed them (flaky test, confirmed from logs).
 - **Idempotent processing:** `startProcessing` claims only unfinished uploads
   and resets them; saving deletes the upload's earlier rows, inserts the new
   ones and marks `completed` in ONE transaction.
@@ -409,6 +414,38 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
 - **Migration 007** rebuilt existing transactions (they're derived from the
   kept files): deleted rows, put completed uploads back to `queued`, the
   sweep reprocesses them with fingerprints.
+
+## D25 — Category list and rules-based categorization (layers 1–3, 5)
+- **Category list (approved by the user):** 13 expense categories (Food &
+  Dining, Groceries, Transport, **Fuel kept separate**, Travel, Shopping,
+  Bills & Utilities, Entertainment & Subscriptions, Health, Rent & Housing,
+  Investments, Cash Withdrawal, Transfers Out), 3 income (Salary, Interest,
+  Money Received) and Uncategorized. Stable `key`s in the `categories` table
+  (migration 008) and `src/categorize/categories.js` — a test keeps them equal.
+  Users pick from this list; custom categories are not supported yet.
+- **Layers, first match wins** (`src/categorize/`):
+  1. user corrections — `category_overrides (user_id, merchant_key)`;
+  2. type rules — cash (only real withdrawal wordings: SBI's
+     "POS ATM PURCH" is a card purchase), salary, interest, investments, rent;
+  3. merchant keyword rules;
+  4. transfer rules (IMPS/NEFT/UPI credits → Money Received; IMPS/NEFT
+     debits and UPI to personal `@ok…` handles → Transfers Out);
+  5. otherwise Uncategorized (never a guess).
+  Patterns use whole-word matching on the uppercased description and the
+  transaction direction.
+- **Stored per transaction:** `category`, `category_source`
+  (`user`/`rule`/`llm`/`none`), `merchant_key`. Upload progress reports
+  `categorizedBy: { user, rule, none }`.
+- **Merchant key:** the UPI handle when present (same across banks that
+  include it), else the description minus numbers, card masks and banking
+  words.
+- **Evaluation:** `tests/fixtures/categorization/labels.json` (256 sample
+  transactions, labelled from a hand-written table, not from the rules) and
+  `npm run eval:categories`. Result: 256/256, 0 wrong, 0 uncategorized —
+  **expected, because the rules were written against these samples**; the
+  number becomes meaningful once real anonymized rows are added.
+- **New stage:** `queued → reading → validating → categorizing → saving →
+  completed`. Migration 008 rebuilt existing transactions (same approach as 007).
 
 ---
 

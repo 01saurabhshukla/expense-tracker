@@ -101,6 +101,7 @@ test('HDFC statement: queued → … → completed, all 54 transactions saved', 
     duplicatesSkipped: 0,
     rowErrors: 0,
     skippedRows: 1,
+    categorizedBy: { user: 0, rule: 54, none: 0 },
   });
   assert.deepEqual(upload.rowErrors, []);
 
@@ -187,6 +188,8 @@ test('jobs lost from Redis are recovered from Postgres by the sweep', async () =
   const keys = await redis.keys(`${testEnv.queuePrefix}:*`);
   if (keys.length > 0) await redis.del(...keys);
   await redis.quit();
+  // …and it has been stuck for longer than the sweep's threshold.
+  await pool.query("UPDATE uploads SET updated_at = now() - interval '5 minutes' WHERE id = $1", [created.id]);
 
   // A fresh worker sweeps unfinished uploads back into the queue.
   worker = await startUploadWorker();

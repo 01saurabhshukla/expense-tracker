@@ -52,6 +52,13 @@ Chosen for a later stage; uploads currently restart from zero (option A).
   the same fail-closed checks (D14) run once the upload completes.
 - Trade-off entry: T32.
 
+## Order agreed with the user (2026-10-07)
+1. The needed backend steps: 7e, 7f, 7g, 7i, transactions API, dashboard API,
+   export (CSV + PDF), CORS, production readiness.
+2. Frontend.
+3. Extras: 7h LLM categorization, rate limiter, metrics + tracing,
+   resumable uploads.
+
 ## Up next (in order)
 
 - [x] Auth (D12), in three sub-steps:
@@ -86,8 +93,8 @@ Chosen for a later stage; uploads currently restart from zero (option A).
         direction + amount + balance; description only as fallback;
         occurrence number) — keep both CHAI POINT ₹20; re-upload of a failed
         parse allowed
-  - [ ] 7e: categorization layers 1–3 + 5 (user corrections, type rules,
-        merchant rules, Uncategorized); hand-labelled evaluation set + accuracy
+  - [x] 7e: categorization layers 1–3 + 5 (user corrections, type rules,
+        merchant rules, Uncategorized); hand-labelled evaluation set + accuracy (D25)
   - [ ] 7f: summary (totals, by category, by month) shown when `completed`;
         include a running-balance check (flags gaps/misreads, as in the 7c tests)
   - [ ] 7g: `.xlsx` reader → same grid (reuses 7b–7f)

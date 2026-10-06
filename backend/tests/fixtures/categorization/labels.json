@@ -1,0 +1,1794 @@
+[
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 7,
+    "direction": "debit",
+    "description": "ACH D- AIRTEL BROADBAND-00626611",
+    "expected": "utilities"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 8,
+    "direction": "credit",
+    "description": "NEFT CR-CITI0000002-ACME TECHNOLOGIES PVT LTD SALARY-N0062695630",
+    "expected": "salary"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 9,
+    "direction": "debit",
+    "description": "UPI-BLINKIT-blinkit@ybl-HDFC0000001-006269301308-UPI",
+    "expected": "groceries"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 10,
+    "direction": "debit",
+    "description": "UPI-RAMESH KUMAR RENT-rameshk@okicici-HDFC0000001-006263352749-UPI",
+    "expected": "rent"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 11,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 NETFLIX",
+    "expected": "entertainment"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 12,
+    "direction": "debit",
+    "description": "UPI-UBER INDIA-uber@hdfcbank-HDFC0000001-006266935701-UPI",
+    "expected": "transport"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 13,
+    "direction": "debit",
+    "description": "NWD-416021XXXXXX4821-S1AWVR02-VIRAR WEST",
+    "expected": "cash"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 14,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 MYNTRA",
+    "expected": "shopping"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 15,
+    "direction": "debit",
+    "description": "UPI-SWIGGY-swiggy@icici-HDFC0000001-006266952889-UPI",
+    "expected": "food_dining"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 16,
+    "direction": "debit",
+    "description": "UPI-OLA-olacabs@ybl-HDFC0000001-006265806224-UPI",
+    "expected": "transport"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 17,
+    "direction": "debit",
+    "description": "ACH D- SIP HDFC MUTUAL FUND-00626002",
+    "expected": "investments"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 18,
+    "direction": "debit",
+    "description": "UPI-SWIGGY-swiggy@icici-HDFC0000001-006269034175-UPI",
+    "expected": "food_dining"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 19,
+    "direction": "debit",
+    "description": "UPI-JIO PREPAID-jio@sbi-HDFC0000001-006269061534-UPI",
+    "expected": "utilities"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 20,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 FLIPKART",
+    "expected": "shopping"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 21,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 MYNTRA",
+    "expected": "shopping"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 22,
+    "direction": "debit",
+    "description": "UPI-CHAI POINT-chaipoint@ybl-HDFC0000001-006260469342-UPI",
+    "expected": "food_dining"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 23,
+    "direction": "debit",
+    "description": "UPI-CHAI POINT-chaipoint@ybl-HDFC0000001-006263852133-UPI",
+    "expected": "food_dining"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 24,
+    "direction": "debit",
+    "description": "UPI-OLA-olacabs@ybl-HDFC0000001-006262973111-UPI",
+    "expected": "transport"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 25,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 NETFLIX",
+    "expected": "entertainment"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 26,
+    "direction": "debit",
+    "description": "UPI-OLA-olacabs@ybl-HDFC0000001-006269805626-UPI",
+    "expected": "transport"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 27,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 HPCL PETROL",
+    "expected": "fuel"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 28,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 MYNTRA",
+    "expected": "shopping"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 29,
+    "direction": "debit",
+    "description": "UPI-APOLLO PHARMACY-apollo@ybl-HDFC0000001-006269244734-UPI",
+    "expected": "health"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 30,
+    "direction": "debit",
+    "description": "UPI-APOLLO PHARMACY-apollo@ybl-HDFC0000001-006264283123-UPI",
+    "expected": "health"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 31,
+    "direction": "debit",
+    "description": "UPI-BLINKIT-blinkit@ybl-HDFC0000001-006260544573-UPI",
+    "expected": "groceries"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 32,
+    "direction": "debit",
+    "description": "ACH D- MSEDCL ELECTRICITY-00626118",
+    "expected": "utilities"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 33,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 MYNTRA",
+    "expected": "shopping"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 34,
+    "direction": "debit",
+    "description": "UPI-CHAI POINT-chaipoint@ybl-HDFC0000001-006260280022-UPI",
+    "expected": "food_dining"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 35,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 HPCL PETROL",
+    "expected": "fuel"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 36,
+    "direction": "debit",
+    "description": "ACH D- MSEDCL ELECTRICITY-00626024",
+    "expected": "utilities"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 37,
+    "direction": "debit",
+    "description": "UPI-ZOMATO-zomato@hdfcbank-HDFC0000001-006264717697-UPI",
+    "expected": "food_dining"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 38,
+    "direction": "credit",
+    "description": "IMPS-006264186909-PRIYA SHUKLA-SBIN-XXXXXXX4512-GIFT",
+    "expected": "transfers_in"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 39,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 FLIPKART",
+    "expected": "shopping"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 40,
+    "direction": "debit",
+    "description": "UPI-ZEPTO-zepto@kotak-HDFC0000001-006261836914-UPI",
+    "expected": "groceries"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 41,
+    "direction": "debit",
+    "description": "UPI-CHAI POINT-chaipoint@ybl-HDFC0000001-006263097244-UPI",
+    "expected": "food_dining"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 42,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 AMAZON PAY",
+    "expected": "shopping"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 43,
+    "direction": "debit",
+    "description": "UPI-CHAI POINT-chaipoint@ybl-HDFC0000001-006264870162-UPI",
+    "expected": "food_dining"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 44,
+    "direction": "debit",
+    "description": "ACH D- MSEDCL ELECTRICITY-00626116",
+    "expected": "utilities"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 45,
+    "direction": "debit",
+    "description": "ACH D- MSEDCL ELECTRICITY-00626280",
+    "expected": "utilities"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 46,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 NETFLIX",
+    "expected": "entertainment"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 47,
+    "direction": "debit",
+    "description": "UPI-ZOMATO-zomato@hdfcbank-HDFC0000001-006264281815-UPI",
+    "expected": "food_dining"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 48,
+    "direction": "debit",
+    "description": "UPI-MAHANAGAR GAS-mgl@hdfcbank-HDFC0000001-006268847974-UPI",
+    "expected": "utilities"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 49,
+    "direction": "debit",
+    "description": "UPI-APOLLO PHARMACY-apollo@ybl-HDFC0000001-006262821004-UPI",
+    "expected": "health"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 50,
+    "direction": "debit",
+    "description": "ACH D- MSEDCL ELECTRICITY-00626457",
+    "expected": "utilities"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 51,
+    "direction": "debit",
+    "description": "UPI-JIO PREPAID-jio@sbi-HDFC0000001-006264940768-UPI",
+    "expected": "utilities"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 52,
+    "direction": "debit",
+    "description": "UPI-OLA-olacabs@ybl-HDFC0000001-006267628627-UPI",
+    "expected": "transport"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 53,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 AMAZON PAY",
+    "expected": "shopping"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 54,
+    "direction": "debit",
+    "description": "POS 416021XXXXXX4821 AMAZON PAY",
+    "expected": "shopping"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 55,
+    "direction": "debit",
+    "description": "UPI-RAPIDO-rapido@axl-HDFC0000001-006267948558-UPI",
+    "expected": "transport"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 56,
+    "direction": "credit",
+    "description": "CREDIT INTEREST CAPITALISED",
+    "expected": "interest"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 57,
+    "direction": "debit",
+    "description": "UPI-SWIGGY-swiggy@icici-HDFC0000001-006260396522-UPI",
+    "expected": "food_dining"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 58,
+    "direction": "debit",
+    "description": "ACH D- MSEDCL ELECTRICITY-00626523",
+    "expected": "utilities"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 59,
+    "direction": "debit",
+    "description": "UPI-JIO PREPAID-jio@sbi-HDFC0000001-006266485352-UPI",
+    "expected": "utilities"
+  },
+  {
+    "file": "hdfc_sep2026.csv",
+    "line": 60,
+    "direction": "debit",
+    "description": "UPI-ZOMATO-zomato@hdfcbank-HDFC0000001-006265760330-UPI",
+    "expected": "food_dining"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 12,
+    "direction": "credit",
+    "description": "BY TRANSFER-NEFT*CITI0000002*CITIN006261933*ACME TECHNOLOGIES PVT LTD SALARY--",
+    "expected": "salary"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 13,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006261131901/RAMESH KUMAR RENT/YESB/rameshk@okicici/Payment--",
+    "expected": "rent"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 14,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006260425213/ZEPTO/YESB/zepto@kotak/Payment--",
+    "expected": "groceries"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 15,
+    "direction": "debit",
+    "description": "POS ATM PURCH OTHPG 3006260685 HPCL PETROL--",
+    "expected": "fuel"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 16,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006260354752/UBER INDIA/YESB/uber@hdfcbank/Payment--",
+    "expected": "transport"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 17,
+    "direction": "debit",
+    "description": "DEBIT-ACHDr AIRTEL BROADBAND 00626625--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 18,
+    "direction": "debit",
+    "description": "ATM WDL-ATM CASH 4123 VIRAR WEST MAHARASHTRA--",
+    "expected": "cash"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 19,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006262143912/APOLLO PHARMACY/YESB/apollo@ybl/Payment--",
+    "expected": "health"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 20,
+    "direction": "debit",
+    "description": "DEBIT-ACHDr MSEDCL ELECTRICITY 00626263--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 21,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006263082625/BOOKMYSHOW/YESB/bookmyshow@hdfcbank/Payment--",
+    "expected": "entertainment"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 22,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006268776017/ZOMATO/YESB/zomato@hdfcbank/Payment--",
+    "expected": "food_dining"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 23,
+    "direction": "debit",
+    "description": "DEBIT-ACHDr SIP HDFC MUTUAL FUND 00626003--",
+    "expected": "investments"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 24,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006266468722/BOOKMYSHOW/YESB/bookmyshow@hdfcbank/Payment--",
+    "expected": "entertainment"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 25,
+    "direction": "debit",
+    "description": "POS ATM PURCH OTHPG 3006269889 MYNTRA--",
+    "expected": "shopping"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 26,
+    "direction": "debit",
+    "description": "DEBIT-ACHDr MSEDCL ELECTRICITY 00626072--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 27,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006264157847/OLA/YESB/olacabs@ybl/Payment--",
+    "expected": "transport"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 28,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006262540407/CHAI POINT/YESB/chaipoint@ybl/Payment--",
+    "expected": "food_dining"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 29,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006260608492/CHAI POINT/YESB/chaipoint@ybl/Payment--",
+    "expected": "food_dining"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 30,
+    "direction": "debit",
+    "description": "TO TRANSFER-INB IRCTC--",
+    "expected": "travel"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 31,
+    "direction": "debit",
+    "description": "DEBIT-ACHDr MSEDCL ELECTRICITY 00626577--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 32,
+    "direction": "debit",
+    "description": "DEBIT-ACHDr MSEDCL ELECTRICITY 00626189--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 33,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006264798730/BOOKMYSHOW/YESB/bookmyshow@hdfcbank/Payment--",
+    "expected": "entertainment"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 34,
+    "direction": "debit",
+    "description": "DEBIT-ACHDr MSEDCL ELECTRICITY 00626565--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 35,
+    "direction": "debit",
+    "description": "POS ATM PURCH OTHPG 3006268200 AMAZON PAY--",
+    "expected": "shopping"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 36,
+    "direction": "debit",
+    "description": "POS ATM PURCH OTHPG 3006260516 AMAZON PAY--",
+    "expected": "shopping"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 37,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006265173852/ZEPTO/YESB/zepto@kotak/Payment--",
+    "expected": "groceries"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 38,
+    "direction": "debit",
+    "description": "POS ATM PURCH OTHPG 3006267527 FLIPKART--",
+    "expected": "shopping"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 39,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006269252690/APOLLO PHARMACY/YESB/apollo@ybl/Payment--",
+    "expected": "health"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 40,
+    "direction": "debit",
+    "description": "POS ATM PURCH OTHPG 3006260767 NETFLIX--",
+    "expected": "entertainment"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 41,
+    "direction": "debit",
+    "description": "DEBIT-ACHDr MSEDCL ELECTRICITY 00626442--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 42,
+    "direction": "debit",
+    "description": "POS ATM PURCH OTHPG 3006266741 AMAZON PAY--",
+    "expected": "shopping"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 43,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006262574557/BOOKMYSHOW/YESB/bookmyshow@hdfcbank/Payment--",
+    "expected": "entertainment"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 44,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006267931923/JIO PREPAID/YESB/jio@sbi/Payment--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 45,
+    "direction": "credit",
+    "description": "BY TRANSFER-IMPS/006263783724/PRIYA SHUKLA/GIFT--",
+    "expected": "transfers_in"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 46,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006261567892/CHAI POINT/YESB/chaipoint@ybl/Payment--",
+    "expected": "food_dining"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 47,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006265306732/OLA/YESB/olacabs@ybl/Payment--",
+    "expected": "transport"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 48,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006261712099/ZEPTO/YESB/zepto@kotak/Payment--",
+    "expected": "groceries"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 49,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006260406072/MAHANAGAR GAS/YESB/mgl@hdfcbank/Payment--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 50,
+    "direction": "debit",
+    "description": "POS ATM PURCH OTHPG 3006267513 NETFLIX--",
+    "expected": "entertainment"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 51,
+    "direction": "debit",
+    "description": "DEBIT-ACHDr MSEDCL ELECTRICITY 00626213--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 52,
+    "direction": "debit",
+    "description": "DEBIT-ACHDr MSEDCL ELECTRICITY 00626869--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 53,
+    "direction": "debit",
+    "description": "DEBIT-ACHDr AIRTEL BROADBAND 00626981--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 54,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006266592649/UBER INDIA/YESB/uber@hdfcbank/Payment--",
+    "expected": "transport"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 55,
+    "direction": "debit",
+    "description": "POS ATM PURCH OTHPG 3006268169 AMAZON PAY--",
+    "expected": "shopping"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 56,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006268636956/MAHANAGAR GAS/YESB/mgl@hdfcbank/Payment--",
+    "expected": "utilities"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 57,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006265502269/SWIGGY/YESB/swiggy@icici/Payment--",
+    "expected": "food_dining"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 58,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006262413057/BLINKIT/YESB/blinkit@ybl/Payment--",
+    "expected": "groceries"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 59,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006265721886/ZOMATO/YESB/zomato@hdfcbank/Payment--",
+    "expected": "food_dining"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 60,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006264346916/OLA/YESB/olacabs@ybl/Payment--",
+    "expected": "transport"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 61,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006264392902/BLINKIT/YESB/blinkit@ybl/Payment--",
+    "expected": "groceries"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 62,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006267042329/RAPIDO/YESB/rapido@axl/Payment--",
+    "expected": "transport"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 63,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006260302547/ZOMATO/YESB/zomato@hdfcbank/Payment--",
+    "expected": "food_dining"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 64,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006269360849/ZOMATO/YESB/zomato@hdfcbank/Payment--",
+    "expected": "food_dining"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 65,
+    "direction": "debit",
+    "description": "POS ATM PURCH OTHPG 3006262358 AMAZON PAY--",
+    "expected": "shopping"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 66,
+    "direction": "debit",
+    "description": "TO TRANSFER-UPI/DR/006260952627/CHAI POINT/YESB/chaipoint@ybl/Payment--",
+    "expected": "food_dining"
+  },
+  {
+    "file": "sbi_sep2026.csv",
+    "line": 67,
+    "direction": "credit",
+    "description": "CREDIT INTEREST--",
+    "expected": "interest"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 6,
+    "direction": "debit",
+    "description": "ACH/AIRTEL BROADBAND/00626999",
+    "expected": "utilities"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 7,
+    "direction": "credit",
+    "description": "NEFT-CITIN006269382-ACME TECHNOLOGIES PVT LTD SALARY",
+    "expected": "salary"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 8,
+    "direction": "debit",
+    "description": "UPI/006261720886/MAHANAGAR GAS/mgl@hdfcbank/Pay to merchant",
+    "expected": "utilities"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 9,
+    "direction": "debit",
+    "description": "UPI/006268506498/BIGBASKET/bigbasket@axisbank/Pay to merchant",
+    "expected": "groceries"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 10,
+    "direction": "debit",
+    "description": "POS/NETFLIX/MUMBAI/006264",
+    "expected": "entertainment"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 11,
+    "direction": "debit",
+    "description": "UPI/006267234193/RAMESH KUMAR RENT/rameshk@okicici/Pay to merchant",
+    "expected": "rent"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 12,
+    "direction": "debit",
+    "description": "UPI/006263986864/UBER INDIA/uber@hdfcbank/Pay to merchant",
+    "expected": "transport"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 13,
+    "direction": "debit",
+    "description": "UPI/006265051399/JIO PREPAID/jio@sbi/Pay to merchant",
+    "expected": "utilities"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 14,
+    "direction": "debit",
+    "description": "POS/NETFLIX/MUMBAI/006267",
+    "expected": "entertainment"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 15,
+    "direction": "debit",
+    "description": "ATM/CASH WDL/VIRAR WEST/4821",
+    "expected": "cash"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 16,
+    "direction": "debit",
+    "description": "UPI/006268743065/OLA/olacabs@ybl/Pay to merchant",
+    "expected": "transport"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 17,
+    "direction": "debit",
+    "description": "POS/FLIPKART/MUMBAI/006265",
+    "expected": "shopping"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 18,
+    "direction": "debit",
+    "description": "UPI/006269201136/CHAI POINT/chaipoint@ybl/Pay to merchant",
+    "expected": "food_dining"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 19,
+    "direction": "debit",
+    "description": "ACH/SIP HDFC MUTUAL FUND/00626568",
+    "expected": "investments"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 20,
+    "direction": "debit",
+    "description": "ACH/AIRTEL BROADBAND/00626019",
+    "expected": "utilities"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 21,
+    "direction": "debit",
+    "description": "UPI/006266966073/CHAI POINT/chaipoint@ybl/Pay to merchant",
+    "expected": "food_dining"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 22,
+    "direction": "debit",
+    "description": "UPI/006269730201/CHAI POINT/chaipoint@ybl/Pay to merchant",
+    "expected": "food_dining"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 23,
+    "direction": "debit",
+    "description": "POS/NETFLIX/MUMBAI/006265",
+    "expected": "entertainment"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 24,
+    "direction": "debit",
+    "description": "POS/MYNTRA/MUMBAI/006260",
+    "expected": "shopping"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 25,
+    "direction": "debit",
+    "description": "ACH/AIRTEL BROADBAND/00626631",
+    "expected": "utilities"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 26,
+    "direction": "debit",
+    "description": "POS/AMAZON PAY/MUMBAI/006269",
+    "expected": "shopping"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 27,
+    "direction": "debit",
+    "description": "POS/NETFLIX/MUMBAI/006262",
+    "expected": "entertainment"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 28,
+    "direction": "debit",
+    "description": "POS/MYNTRA/MUMBAI/006261",
+    "expected": "shopping"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 29,
+    "direction": "debit",
+    "description": "POS/HPCL PETROL/MUMBAI/006265",
+    "expected": "fuel"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 30,
+    "direction": "debit",
+    "description": "POS/FLIPKART/MUMBAI/006267",
+    "expected": "shopping"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 31,
+    "direction": "debit",
+    "description": "ACH/AIRTEL BROADBAND/00626592",
+    "expected": "utilities"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 32,
+    "direction": "debit",
+    "description": "UPI/006265915260/OLA/olacabs@ybl/Pay to merchant",
+    "expected": "transport"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 33,
+    "direction": "debit",
+    "description": "UPI/006264679575/SWIGGY/swiggy@icici/Pay to merchant",
+    "expected": "food_dining"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 34,
+    "direction": "debit",
+    "description": "UPI/006268212495/MAHANAGAR GAS/mgl@hdfcbank/Pay to merchant",
+    "expected": "utilities"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 35,
+    "direction": "debit",
+    "description": "UPI/006260372160/ZEPTO/zepto@kotak/Pay to merchant",
+    "expected": "groceries"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 36,
+    "direction": "debit",
+    "description": "UPI/006269888104/JIO PREPAID/jio@sbi/Pay to merchant",
+    "expected": "utilities"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 37,
+    "direction": "credit",
+    "description": "MMT/IMPS/006261016310/PRIYA SHUKLA/SBIN0001234",
+    "expected": "transfers_in"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 38,
+    "direction": "debit",
+    "description": "UPI/006260356558/BLINKIT/blinkit@ybl/Pay to merchant",
+    "expected": "groceries"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 39,
+    "direction": "debit",
+    "description": "UPI/006266193558/UBER INDIA/uber@hdfcbank/Pay to merchant",
+    "expected": "transport"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 40,
+    "direction": "debit",
+    "description": "UPI/006264213132/RAPIDO/rapido@axl/Pay to merchant",
+    "expected": "transport"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 41,
+    "direction": "debit",
+    "description": "UPI/006267655647/BIGBASKET/bigbasket@axisbank/Pay to merchant",
+    "expected": "groceries"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 42,
+    "direction": "debit",
+    "description": "POS/NETFLIX/MUMBAI/006265",
+    "expected": "entertainment"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 43,
+    "direction": "debit",
+    "description": "UPI/006269943384/BIGBASKET/bigbasket@axisbank/Pay to merchant",
+    "expected": "groceries"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 44,
+    "direction": "debit",
+    "description": "POS/DMART/MUMBAI/006265",
+    "expected": "groceries"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 45,
+    "direction": "debit",
+    "description": "POS/MYNTRA/MUMBAI/006262",
+    "expected": "shopping"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 46,
+    "direction": "debit",
+    "description": "UPI/006266106153/ZOMATO/zomato@hdfcbank/Pay to merchant",
+    "expected": "food_dining"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 47,
+    "direction": "debit",
+    "description": "ACH/AIRTEL BROADBAND/00626310",
+    "expected": "utilities"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 48,
+    "direction": "debit",
+    "description": "UPI/006265245743/RAPIDO/rapido@axl/Pay to merchant",
+    "expected": "transport"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 49,
+    "direction": "debit",
+    "description": "UPI/006266193375/SWIGGY/swiggy@icici/Pay to merchant",
+    "expected": "food_dining"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 50,
+    "direction": "debit",
+    "description": "UPI/006269992870/JIO PREPAID/jio@sbi/Pay to merchant",
+    "expected": "utilities"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 51,
+    "direction": "debit",
+    "description": "UPI/006264431487/UBER INDIA/uber@hdfcbank/Pay to merchant",
+    "expected": "transport"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 52,
+    "direction": "debit",
+    "description": "UPI/006265039942/MAHANAGAR GAS/mgl@hdfcbank/Pay to merchant",
+    "expected": "utilities"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 53,
+    "direction": "credit",
+    "description": "Int.Pd:01-06-2026 to 30-09-2026",
+    "expected": "interest"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 54,
+    "direction": "debit",
+    "description": "UPI/006261759455/ZOMATO/zomato@hdfcbank/Pay to merchant",
+    "expected": "food_dining"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 55,
+    "direction": "debit",
+    "description": "BIL/ONL/006260451/IRCTC",
+    "expected": "travel"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 56,
+    "direction": "debit",
+    "description": "POS/DMART/MUMBAI/006269",
+    "expected": "groceries"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 57,
+    "direction": "debit",
+    "description": "POS/FLIPKART/MUMBAI/006262",
+    "expected": "shopping"
+  },
+  {
+    "file": "icici_sep2026.csv",
+    "line": 58,
+    "direction": "debit",
+    "description": "ACH/MSEDCL ELECTRICITY/00626520",
+    "expected": "utilities"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 5,
+    "direction": "debit",
+    "description": "ECOM PUR/HPCL PETROL/MUMBAI/01-09-2026",
+    "expected": "fuel"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 6,
+    "direction": "credit",
+    "description": "NEFT/CITIN006262565/ACME TECHNOLOGIES PVT LTD SALARY",
+    "expected": "salary"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 7,
+    "direction": "debit",
+    "description": "ECOM PUR/NETFLIX/MUMBAI/02-09-2026",
+    "expected": "entertainment"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 8,
+    "direction": "debit",
+    "description": "UPI/P2M/006261304534/BIGBASKET/bigbasket@axisbank/AXIS BANK",
+    "expected": "groceries"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 9,
+    "direction": "debit",
+    "description": "ECOM PUR/HPCL PETROL/MUMBAI/03-09-2026",
+    "expected": "fuel"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 10,
+    "direction": "debit",
+    "description": "UPI/P2M/006263211414/ZOMATO/zomato@hdfcbank/AXIS BANK",
+    "expected": "food_dining"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 11,
+    "direction": "debit",
+    "description": "UPI/P2M/006267451470/RAMESH KUMAR RENT/rameshk@okicici/AXIS BANK",
+    "expected": "rent"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 12,
+    "direction": "debit",
+    "description": "ECOM PUR/AMAZON PAY/MUMBAI/04-09-2026",
+    "expected": "shopping"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 13,
+    "direction": "debit",
+    "description": "UPI/P2M/006262289043/ZEPTO/zepto@kotak/AXIS BANK",
+    "expected": "groceries"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 14,
+    "direction": "debit",
+    "description": "UPI/P2M/006264195098/UBER INDIA/uber@hdfcbank/AXIS BANK",
+    "expected": "transport"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 15,
+    "direction": "debit",
+    "description": "ATM-CASH/VIRAR WEST/AXIS",
+    "expected": "cash"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 16,
+    "direction": "debit",
+    "description": "UPI/P2M/006262665977/RAPIDO/rapido@axl/AXIS BANK",
+    "expected": "transport"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 17,
+    "direction": "debit",
+    "description": "UPI/P2M/006265558412/UBER INDIA/uber@hdfcbank/AXIS BANK",
+    "expected": "transport"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 18,
+    "direction": "debit",
+    "description": "ECOM PUR/HPCL PETROL/MUMBAI/07-09-2026",
+    "expected": "fuel"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 19,
+    "direction": "debit",
+    "description": "ACH-DR-SIP HDFC MUTUAL FUND-00626015",
+    "expected": "investments"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 20,
+    "direction": "debit",
+    "description": "ECOM PUR/AMAZON PAY/MUMBAI/08-09-2026",
+    "expected": "shopping"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 21,
+    "direction": "debit",
+    "description": "UPI/P2M/006260751572/MAHANAGAR GAS/mgl@hdfcbank/AXIS BANK",
+    "expected": "utilities"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 22,
+    "direction": "debit",
+    "description": "ECOM PUR/FLIPKART/MUMBAI/08-09-2026",
+    "expected": "shopping"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 23,
+    "direction": "debit",
+    "description": "UPI/P2M/006262844862/OLA/olacabs@ybl/AXIS BANK",
+    "expected": "transport"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 24,
+    "direction": "debit",
+    "description": "UPI/P2M/006266126885/CHAI POINT/chaipoint@ybl/AXIS BANK",
+    "expected": "food_dining"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 25,
+    "direction": "debit",
+    "description": "UPI/P2M/006266085503/CHAI POINT/chaipoint@ybl/AXIS BANK",
+    "expected": "food_dining"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 26,
+    "direction": "debit",
+    "description": "ECOM PUR/HPCL PETROL/MUMBAI/11-09-2026",
+    "expected": "fuel"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 27,
+    "direction": "debit",
+    "description": "ECOM PUR/HPCL PETROL/MUMBAI/11-09-2026",
+    "expected": "fuel"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 28,
+    "direction": "debit",
+    "description": "ACH-DR-MSEDCL ELECTRICITY-00626162",
+    "expected": "utilities"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 29,
+    "direction": "debit",
+    "description": "UPI/P2M/006267370680/MAHANAGAR GAS/mgl@hdfcbank/AXIS BANK",
+    "expected": "utilities"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 30,
+    "direction": "debit",
+    "description": "UPI/P2M/006263476855/BOOKMYSHOW/bookmyshow@hdfcbank/AXIS BANK",
+    "expected": "entertainment"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 31,
+    "direction": "debit",
+    "description": "UPI/P2M/006267112742/RAPIDO/rapido@axl/AXIS BANK",
+    "expected": "transport"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 32,
+    "direction": "debit",
+    "description": "UPI/P2M/006263488265/APOLLO PHARMACY/apollo@ybl/AXIS BANK",
+    "expected": "health"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 33,
+    "direction": "debit",
+    "description": "ACH-DR-MSEDCL ELECTRICITY-00626190",
+    "expected": "utilities"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 34,
+    "direction": "credit",
+    "description": "IMPS/P2A/006260995552/PRIYA SHUKLA",
+    "expected": "transfers_in"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 35,
+    "direction": "debit",
+    "description": "BRN-FLEX/IRCTC",
+    "expected": "travel"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 36,
+    "direction": "debit",
+    "description": "UPI/P2M/006260927287/CHAI POINT/chaipoint@ybl/AXIS BANK",
+    "expected": "food_dining"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 37,
+    "direction": "debit",
+    "description": "UPI/P2M/006262829817/BIGBASKET/bigbasket@axisbank/AXIS BANK",
+    "expected": "groceries"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 38,
+    "direction": "debit",
+    "description": "UPI/P2M/006269991416/APOLLO PHARMACY/apollo@ybl/AXIS BANK",
+    "expected": "health"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 39,
+    "direction": "debit",
+    "description": "UPI/P2M/006262510551/ZEPTO/zepto@kotak/AXIS BANK",
+    "expected": "groceries"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 40,
+    "direction": "debit",
+    "description": "ACH-DR-AIRTEL BROADBAND-00626068",
+    "expected": "utilities"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 41,
+    "direction": "debit",
+    "description": "UPI/P2M/006269164219/JIO PREPAID/jio@sbi/AXIS BANK",
+    "expected": "utilities"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 42,
+    "direction": "debit",
+    "description": "BRN-FLEX/IRCTC",
+    "expected": "travel"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 43,
+    "direction": "debit",
+    "description": "UPI/P2M/006269775497/OLA/olacabs@ybl/AXIS BANK",
+    "expected": "transport"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 44,
+    "direction": "debit",
+    "description": "ACH-DR-AIRTEL BROADBAND-00626417",
+    "expected": "utilities"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 45,
+    "direction": "debit",
+    "description": "UPI/P2M/006265392750/OLA/olacabs@ybl/AXIS BANK",
+    "expected": "transport"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 46,
+    "direction": "debit",
+    "description": "ECOM PUR/HPCL PETROL/MUMBAI/26-09-2026",
+    "expected": "fuel"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 47,
+    "direction": "debit",
+    "description": "UPI/P2M/006262051404/BIGBASKET/bigbasket@axisbank/AXIS BANK",
+    "expected": "groceries"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 48,
+    "direction": "credit",
+    "description": "41470100XXXXX:Int.Pd:01-07-2026 to 30-09-2026",
+    "expected": "interest"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 49,
+    "direction": "debit",
+    "description": "UPI/P2M/006264914170/CHAI POINT/chaipoint@ybl/AXIS BANK",
+    "expected": "food_dining"
+  },
+  {
+    "file": "axis_sep2026.csv",
+    "line": 50,
+    "direction": "debit",
+    "description": "UPI/P2M/006266867270/SWIGGY/swiggy@icici/AXIS BANK",
+    "expected": "food_dining"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 5,
+    "direction": "debit",
+    "description": "UPI/RAPIDO/006269145999/UPI Payment",
+    "expected": "transport"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 6,
+    "direction": "debit",
+    "description": "UPI/APOLLO PHARMACY/006261544734/UPI Payment",
+    "expected": "health"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 7,
+    "direction": "credit",
+    "description": "NEFT CITIN006265242 ACME TECHNOLOGIES PVT LTD SALARY",
+    "expected": "salary"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 8,
+    "direction": "debit",
+    "description": "UPI/OLA/006265315021/UPI Payment",
+    "expected": "transport"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 9,
+    "direction": "debit",
+    "description": "UPI/ZEPTO/006265136698/UPI Payment",
+    "expected": "groceries"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 10,
+    "direction": "debit",
+    "description": "UPI/RAMESH KUMAR RENT/006262977582/UPI Payment",
+    "expected": "rent"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 11,
+    "direction": "debit",
+    "description": "UPI/OLA/006261311915/UPI Payment",
+    "expected": "transport"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 12,
+    "direction": "debit",
+    "description": "UPI/BLINKIT/006262497591/UPI Payment",
+    "expected": "groceries"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 13,
+    "direction": "debit",
+    "description": "ATL/4821/VIRAR WEST/CASH WDL",
+    "expected": "cash"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 14,
+    "direction": "debit",
+    "description": "UPI/UBER INDIA/006268116712/UPI Payment",
+    "expected": "transport"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 15,
+    "direction": "debit",
+    "description": "UPI/ZEPTO/006262710014/UPI Payment",
+    "expected": "groceries"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 16,
+    "direction": "debit",
+    "description": "PCD/4821/FLIPKART/MUMBAI060926",
+    "expected": "shopping"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 17,
+    "direction": "debit",
+    "description": "ACH DR SIP HDFC MUTUAL FUND 00626135",
+    "expected": "investments"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 18,
+    "direction": "debit",
+    "description": "UPI/MAHANAGAR GAS/006268951160/UPI Payment",
+    "expected": "utilities"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 19,
+    "direction": "debit",
+    "description": "PCD/4821/DMART/MUMBAI090926",
+    "expected": "groceries"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 20,
+    "direction": "debit",
+    "description": "UPI/CHAI POINT/006260533959/UPI Payment",
+    "expected": "food_dining"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 21,
+    "direction": "debit",
+    "description": "UPI/CHAI POINT/006263981847/UPI Payment",
+    "expected": "food_dining"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 22,
+    "direction": "debit",
+    "description": "UPI/UBER INDIA/006269964998/UPI Payment",
+    "expected": "transport"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 23,
+    "direction": "debit",
+    "description": "UPI/ZEPTO/006265768558/UPI Payment",
+    "expected": "groceries"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 24,
+    "direction": "debit",
+    "description": "UPI/JIO PREPAID/006264197808/UPI Payment",
+    "expected": "utilities"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 25,
+    "direction": "debit",
+    "description": "UPI/UBER INDIA/006267644791/UPI Payment",
+    "expected": "transport"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 26,
+    "direction": "debit",
+    "description": "UPI/UBER INDIA/006267075913/UPI Payment",
+    "expected": "transport"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 27,
+    "direction": "debit",
+    "description": "PCD/4821/FLIPKART/MUMBAI140926",
+    "expected": "shopping"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 28,
+    "direction": "debit",
+    "description": "PCD/4821/MYNTRA/MUMBAI150926",
+    "expected": "shopping"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 29,
+    "direction": "debit",
+    "description": "UPI/RAPIDO/006260548970/UPI Payment",
+    "expected": "transport"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 30,
+    "direction": "debit",
+    "description": "UPI/MAHANAGAR GAS/006268280633/UPI Payment",
+    "expected": "utilities"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 31,
+    "direction": "debit",
+    "description": "UPI/CHAI POINT/006265606698/UPI Payment",
+    "expected": "food_dining"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 32,
+    "direction": "debit",
+    "description": "IRCTC",
+    "expected": "travel"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 33,
+    "direction": "credit",
+    "description": "IMPS-006262190631-PRIYA SHUKLA",
+    "expected": "transfers_in"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 34,
+    "direction": "debit",
+    "description": "PCD/4821/HPCL PETROL/MUMBAI190926",
+    "expected": "fuel"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 35,
+    "direction": "debit",
+    "description": "UPI/ZEPTO/006262227628/UPI Payment",
+    "expected": "groceries"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 36,
+    "direction": "debit",
+    "description": "UPI/ZEPTO/006266942788/UPI Payment",
+    "expected": "groceries"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 37,
+    "direction": "debit",
+    "description": "UPI/SWIGGY/006261788964/UPI Payment",
+    "expected": "food_dining"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 38,
+    "direction": "debit",
+    "description": "PCD/4821/AMAZON PAY/MUMBAI210926",
+    "expected": "shopping"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 39,
+    "direction": "debit",
+    "description": "PCD/4821/MYNTRA/MUMBAI230926",
+    "expected": "shopping"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 40,
+    "direction": "debit",
+    "description": "ACH DR AIRTEL BROADBAND 00626625",
+    "expected": "utilities"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 41,
+    "direction": "debit",
+    "description": "UPI/ZOMATO/006262503921/UPI Payment",
+    "expected": "food_dining"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 42,
+    "direction": "debit",
+    "description": "UPI/MAHANAGAR GAS/006260986007/UPI Payment",
+    "expected": "utilities"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 43,
+    "direction": "debit",
+    "description": "UPI/BLINKIT/006267057265/UPI Payment",
+    "expected": "groceries"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 44,
+    "direction": "debit",
+    "description": "PCD/4821/AMAZON PAY/MUMBAI260926",
+    "expected": "shopping"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 45,
+    "direction": "debit",
+    "description": "ACH DR MSEDCL ELECTRICITY 00626236",
+    "expected": "utilities"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 46,
+    "direction": "debit",
+    "description": "UPI/BLINKIT/006267602677/UPI Payment",
+    "expected": "groceries"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 47,
+    "direction": "debit",
+    "description": "PCD/4821/AMAZON PAY/MUMBAI270926",
+    "expected": "shopping"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 48,
+    "direction": "credit",
+    "description": "Int.Pd:XXXX5678:01-07-2026 to 30-09-2026",
+    "expected": "interest"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 49,
+    "direction": "debit",
+    "description": "UPI/BIGBASKET/006267609138/UPI Payment",
+    "expected": "groceries"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 50,
+    "direction": "debit",
+    "description": "ACH DR MSEDCL ELECTRICITY 00626818",
+    "expected": "utilities"
+  },
+  {
+    "file": "kotak_sep2026.csv",
+    "line": 51,
+    "direction": "debit",
+    "description": "IRCTC",
+    "expected": "travel"
+  }
+]

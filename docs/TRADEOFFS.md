@@ -349,8 +349,9 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 
 ### T56 — Redis doesn't persist the queue · Active · (D23)
 - **We accept:** `appendonly no` — a Redis restart loses waiting jobs.
-- **Hurts when:** Only as a delay: the sweep re-adds unfinished uploads
-  within 60s of the worker running. Job history in Redis is lost.
+- **Hurts when:** Only as a delay: the sweep re-adds an upload once it has
+  been untouched for 60s, so recovery takes 1–2 minutes. Job history in
+  Redis is lost.
 - **Fix:** Enable AOF if job history ever matters.
 
 ### T57 — One more service to run and monitor · Active · (D23)
@@ -461,6 +462,31 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
   rows only if they're identical in every field anyway.
 - **Fix:** None needed for the five supported formats (verified: every
   sample row has a unique fingerprint).
+
+### T61 — Keyword rules only know the merchants we listed · Active · (D25)
+- **We accept:** A merchant not in the lists (a local restaurant, a new app)
+  is Uncategorized. Rules were tuned on synthetic samples, so the 100% score
+  overstates real-world accuracy.
+- **Hurts when:** Real statements with many small local merchants → a large
+  Uncategorized share on the dashboard.
+- **Fix:** Add real anonymized rows to the evaluation set and extend the
+  lists; user corrections; the planned LLM layer (7h) for the leftovers.
+
+### T62 — Merchant keys differ when a bank omits the UPI handle · Active · (D25)
+- **We accept:** Kotak writes "UPI/SWIGGY/…" without a handle, so its key is
+  `SWIGGY`, while other banks give `swiggy@icici`. A correction made on one
+  doesn't apply to the other.
+- **Hurts when:** A user with accounts at Kotak and another bank corrects a
+  merchant and it "doesn't stick" on the other statement.
+- **Fix:** Store the cleaned name alongside the handle and match a
+  correction against either.
+
+### T63 — Fixed category list · Active · (D25)
+- **We accept:** Users can't add their own categories (e.g. "Kids",
+  "Pets"); corrections choose from the 17 built-in ones.
+- **Hurts when:** A user's budgeting needs a category we don't have.
+- **Fix:** A per-user `custom_categories` table referenced alongside the
+  built-in keys.
 
 ## Validation & errors
 

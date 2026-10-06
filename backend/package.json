@@ -9,7 +9,8 @@
     "dev": "node --env-file=.env --watch src/server.js",
     "migrate": "node --env-file=.env scripts/migrate.js",
     "worker": "node --env-file=.env src/worker.js",
-    "dev:worker": "node --env-file=.env --watch src/worker.js"
+    "dev:worker": "node --env-file=.env --watch src/worker.js",
+    "eval:categories": "node scripts/eval-categories.js"
   },
   "repository": {
     "type": "git",

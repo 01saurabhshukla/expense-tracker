@@ -111,10 +111,17 @@ export async function markFailed(uploadId, { code, message, rowErrors = [] }) {
   );
 }
 
-// Uploads that should be in the queue: anything not finished.
-export async function findUnfinishedUploadIds() {
+// Unfinished uploads that haven't changed for `staleAfterMs`. Every stage and
+// progress update refreshes updated_at, so an upload that is being worked on
+// (or was just created and is about to be) is never returned — only ones
+// whose job was really lost.
+export async function findStaleUnfinishedUploadIds(staleAfterMs) {
   const { rows } = await pool.query(
-    `SELECT id FROM uploads WHERE stage NOT IN ('completed', 'failed') ORDER BY created_at`,
+    `SELECT id FROM uploads
+     WHERE stage NOT IN ('completed', 'failed')
+       AND updated_at < now() - make_interval(secs => $1 / 1000.0)
+     ORDER BY created_at`,
+    [staleAfterMs],
   );
   return rows.map((row) => row.id);
 }

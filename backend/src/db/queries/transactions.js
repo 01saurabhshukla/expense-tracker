@@ -24,10 +24,12 @@ export async function insertTransactions(db, { userId, uploadId, transactions })
     const { rowCount } = await db.query(
       `INSERT INTO transactions
          (user_id, upload_id, line, date, value_date, description, reference,
-          direction, amount_paise, balance_paise, fingerprint)
+          direction, amount_paise, balance_paise, fingerprint,
+          category, category_source, merchant_key)
        SELECT $1, $2, * FROM unnest(
          $3::int[], $4::date[], $5::date[], $6::text[], $7::text[],
-         $8::text[], $9::bigint[], $10::bigint[], $11::text[])
+         $8::text[], $9::bigint[], $10::bigint[], $11::text[],
+         $12::text[], $13::text[], $14::text[])
        ON CONFLICT (user_id, fingerprint) DO NOTHING`,
       [
         userId,
@@ -41,6 +43,9 @@ export async function insertTransactions(db, { userId, uploadId, transactions })
         column('amountPaise'),
         column('balancePaise'),
         column('fingerprint'),
+        column('category'),
+        column('categorySource'),
+        column('merchantKey'),
       ],
     );
     inserted += rowCount;
