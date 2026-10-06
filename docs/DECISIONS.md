@@ -389,6 +389,27 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   read errors; a missing file made the job wait forever. Fixed by forwarding
   the source stream's error to the parser; regression test added.
 
+## D24 — Duplicate transactions: fingerprint option A, one row per user
+- **Decision (user chose option A):** `src/parsing/fingerprint.js` hashes
+  `date + direction + amount + bank reference + running balance`; the
+  description is added only when there's neither a reference nor a balance;
+  otherwise-identical rows within one file get an occurrence number (#1, #2…).
+  `transactions` has `UNIQUE (user_id, fingerprint)`; inserts use
+  `ON CONFLICT DO NOTHING` and the upload reports `duplicatesSkipped`.
+- **Why:** the reference and balance are the bank's own identifiers and differ
+  for every real transaction (both ₹20 CHAI POINT payments are kept); leaving
+  out the description stops differently-worded exports of the same payment
+  from counting twice; the occurrence number keeps two genuine identical
+  payments as two, while an overlapping statement still matches them.
+- **Verified:** HDFC Sep (54) + the overlap file (42) → 66 stored, 30 skipped;
+  another user's identical statement is unaffected.
+- **Re-uploading failed files:** the duplicate-file rule is now a partial
+  unique index `(user_id, sha256) WHERE stage <> 'failed'`, and
+  `findUploadByHash` ignores failed uploads.
+- **Migration 007** rebuilt existing transactions (they're derived from the
+  kept files): deleted rows, put completed uploads back to `queued`, the
+  sweep reprocesses them with fingerprints.
+
 ---
 
 ## Revisit before deploying

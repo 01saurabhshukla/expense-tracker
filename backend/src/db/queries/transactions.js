@@ -11,6 +11,10 @@ export async function deleteTransactionsForUpload(db, uploadId) {
 // Inserts many rows with one statement per batch. unnest() turns parallel
 // arrays (all dates, all descriptions, ...) back into rows inside Postgres,
 // so 1000 rows cost one round trip instead of 1000.
+//
+// A row whose fingerprint this user already has (from an overlapping
+// statement) is skipped by ON CONFLICT DO NOTHING; the returned count is only
+// the rows actually inserted.
 export async function insertTransactions(db, { userId, uploadId, transactions }) {
   let inserted = 0;
   for (let start = 0; start < transactions.length; start += BATCH_SIZE) {
@@ -20,10 +24,11 @@ export async function insertTransactions(db, { userId, uploadId, transactions })
     const { rowCount } = await db.query(
       `INSERT INTO transactions
          (user_id, upload_id, line, date, value_date, description, reference,
-          direction, amount_paise, balance_paise)
+          direction, amount_paise, balance_paise, fingerprint)
        SELECT $1, $2, * FROM unnest(
          $3::int[], $4::date[], $5::date[], $6::text[], $7::text[],
-         $8::text[], $9::bigint[], $10::bigint[])`,
+         $8::text[], $9::bigint[], $10::bigint[], $11::text[])
+       ON CONFLICT (user_id, fingerprint) DO NOTHING`,
       [
         userId,
         uploadId,
@@ -35,6 +40,7 @@ export async function insertTransactions(db, { userId, uploadId, transactions })
         column('direction'),
         column('amountPaise'),
         column('balancePaise'),
+        column('fingerprint'),
       ],
     );
     inserted += rowCount;

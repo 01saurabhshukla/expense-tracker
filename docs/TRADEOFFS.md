@@ -293,7 +293,7 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Fix:** nginx `client_max_body_size` (in the deploy checklist) cuts these
   off before they reach Node; the pending rate limiter limits repeats.
 
-### T37 — Duplicate-file check is exact bytes only · Active · (D14)
+### T37 — Duplicate-file check is exact bytes only · Active · (D14) — row-level dedupe now covers overlaps (D24)
 - **We accept:** Same SHA-256 = duplicate. The same statement re-downloaded
   later (e.g. with a different "generated on" line), or an overlapping
   statement, has different bytes and is accepted as a new upload.
@@ -442,6 +442,25 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
   null and the row is kept; only the transaction date is required.
 - **Hurts when:** Rarely; value date is informational.
 - **Fix:** None planned.
+
+### T59 — A shared transaction belongs to whichever upload saved it first · Active · (D24)
+- **We accept:** When statements overlap, each shared row is stored once,
+  owned by the upload that inserted it first. The later upload just counts
+  it as a duplicate.
+- **Hurts when:** "Delete this upload" is built: deleting the first upload
+  would remove rows the overlapping upload also contained.
+- **Fix:** On upload delete, reprocess the user's other uploads (or keep a
+  link table upload ↔ transaction so a row is removed only when no upload
+  still contains it).
+
+### T60 — The fingerprint trusts the bank's reference and balance · Active · (D24)
+- **We accept:** Two different transactions with the same date, direction,
+  amount, reference and balance would be treated as one.
+- **Hurts when:** A bank reuses or blanks references *and* omits balances —
+  then we fall back to description + occurrence number, which can merge two
+  rows only if they're identical in every field anyway.
+- **Fix:** None needed for the five supported formats (verified: every
+  sample row has a unique fingerprint).
 
 ## Validation & errors
 

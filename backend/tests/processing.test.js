@@ -98,6 +98,7 @@ test('HDFC statement: queued → … → completed, all 54 transactions saved', 
     rowsRead: 55, // 54 transactions + the footer
     transactionsFound: 54,
     transactionsSaved: 54,
+    duplicatesSkipped: 0,
     rowErrors: 0,
     skippedRows: 1,
   });

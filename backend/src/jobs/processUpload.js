@@ -12,6 +12,7 @@ import { readCsvRows } from '../parsing/readers/csvReader.js';
 import { findHeader, MAX_ROWS_BEFORE_HEADER } from '../parsing/columns.js';
 import { normalizeRows } from '../parsing/normalize.js';
 import { ParseError } from '../parsing/errors.js';
+import { addFingerprints } from '../parsing/fingerprint.js';
 import { resolveStoredFile } from '../services/uploadStorage.js';
 import { log } from '../log.js';
 
@@ -106,13 +107,15 @@ async function save(upload, { transactions, errors, skipped }) {
     const saved = await insertTransactions(db, {
       userId: upload.userId,
       uploadId: upload.id,
-      transactions,
+      transactions: addFingerprints(transactions),
     });
     await markCompleted(db, upload.id, {
       progress: {
         rowsRead: transactions.length + errors.length + skipped,
         transactionsFound: transactions.length,
         transactionsSaved: saved,
+        // Already imported from an overlapping statement (see fingerprint.js).
+        duplicatesSkipped: transactions.length - saved,
         rowErrors: errors.length,
         skippedRows: skipped,
       },

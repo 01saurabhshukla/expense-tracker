@@ -52,9 +52,11 @@ export async function findUploadForUser(userId, id) {
   return rows[0] ?? null;
 }
 
+// Failed uploads don't count: the same file may be uploaded again after a
+// failure (matches the partial unique index in migration 007).
 export async function findUploadByHash(userId, sha256) {
   const { rows } = await pool.query(
-    `SELECT ${PUBLIC_COLUMNS} FROM uploads WHERE user_id = $1 AND sha256 = $2`,
+    `SELECT ${PUBLIC_COLUMNS} FROM uploads WHERE user_id = $1 AND sha256 = $2 AND stage <> 'failed'`,
     [userId, sha256],
   );
   return rows[0] ?? null;

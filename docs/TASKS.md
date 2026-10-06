@@ -82,7 +82,7 @@ Chosen for a later stage; uploads currently restart from zero (option A).
   - [x] 7c: row normalization (dates, ₹ paise, Dr/Cr, footers) + per-row errors (D22)
   - [x] 7d-1: BullMQ worker + stages/progress/errors in Postgres;
         `transactions` table; idempotent save; retries; sweep recovery (D23)
-  - [ ] 7d-2: row-level dedupe, fingerprint option A (bank reference + date +
+  - [x] 7d-2 (D24): row-level dedupe, fingerprint option A (bank reference + date +
         direction + amount + balance; description only as fallback;
         occurrence number) — keep both CHAI POINT ₹20; re-upload of a failed
         parse allowed
