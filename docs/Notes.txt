@@ -59,3 +59,9 @@ For comparison
 The Express world has a ready-made package, http-errors (createError(404, 'Not found')). It marks errors with an expose: true/false flag instead of a class. It's the same idea, packaged as a library. We hand-wrote ours in 8 lines so you can see exactly how it works.
 
 3. 
+How it works:
+- fetch() can't send a deliberately broken or half-finished request, so these tests build the HTTP request by hand with node:http. That's why there's a partHeader() helper that writes the multipart format directly.
+- waitFor() checks a condition every 25 ms for up to 3 seconds. Cleanup after a dropped connection happens asynchronously, so the test can't check immediately.
+- The size limit is set to 64 KB for this test file only, so oversized uploads are quick to send.
+
+Fixtures: your sample CSVs and their README are now copied into backend/tests/fixtures/statements/, so tests don't depend on ~/Downloads. They're synthetic, per the README. I didn't copy generate-large-csv.js.

@@ -97,7 +97,8 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Hurts when:** A test crashes before cleanup (leftover test rows), a buggy
   cleanup query deletes real data, tests run in parallel with real usage, or
   tests become slow because every run goes over the network (~3s per signup).
-  `npm test` also needs `.env` and internet access.
+  `npm test` also needs `.env` and internet access. Network-drop tests use
+  short polling timeouts (3s), so a very slow machine could make them flaky.
 - **Fix:** A separate Supabase project or local Postgres in Docker just for
   tests; run each test inside a transaction that's rolled back.
 
@@ -230,6 +231,91 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
   and the setting isn't updated → everyone shares one limit, or clients can
   spoof their IP and dodge limits.
 - **Fix:** Update `trust proxy` whenever the network path in front of the app changes.
+
+## Uploads
+
+### T32 — Uploads restart from zero after a network drop · Active · (D14)
+- **We accept:** One streaming request per file; if the connection drops,
+  the partial file is discarded and the whole file is sent again.
+- **Hurts when:** Files are large (tens of MB+) on unreliable networks.
+- **Fix (scheduled):** Resumable uploads with the tus protocol
+  (`@tus/server` + `tus-js-client`), plus a cleanup job for abandoned
+  partial uploads. Decided for a later stage — see TASKS.md → Pending.
+
+### T33 — Legacy `.xls` files are rejected · Planned · (D15)
+- **We accept:** Users whose bank only exports `.xls` (or HTML disguised as
+  `.xls`) must re-save it as `.xlsx` or CSV first.
+- **Hurts when:** Less technical users don't know how to convert the file.
+- **Fix:** Add SheetJS from its official CDN (pinned version + checksum),
+  parsed in a worker thread with a timeout and memory cap.
+
+### T34 — Raw statements are kept on disk indefinitely · Active · (D16)
+- **We accept:** Every accepted bank statement stays in `storage/files/`
+  forever (until a retention policy is decided), unencrypted beyond the disk
+  itself. Earlier plan was "delete after parsing"; changed by the user.
+- **Hurts when:** Someone gains access to the server or a backup → years of
+  users' statements; the disk fills up; privacy laws (e.g. India's DPDP Act)
+  expect data to be kept no longer than needed.
+- **Fix:** Decide a retention policy (e.g. delete N days after parsing, or
+  let users delete their own files); encrypt the EBS volume; disk alerts.
+
+### T39 — Deleting a user leaves their files on disk · Active · (D16)
+- **We accept:** `ON DELETE CASCADE` removes the user's `uploads` and
+  `stored_files` rows, but the database can't delete files on disk, so the
+  files stay with nothing pointing to them.
+- **Hurts when:** Account deletion is built — a "deleted" user's statements
+  would still exist.
+- **Fix:** Account deletion reads the user's `stored_files` paths and
+  deletes the files before (or after) deleting the rows; plus the orphan
+  cleanup job from T35.
+
+### T40 — `user_id` stored in both `uploads` and `stored_files` · Active · (D16)
+- **We accept:** The owner is recorded twice (as requested, so the path is
+  mapped directly to the user).
+- **Hurts when:** The two copies disagree.
+- **Fix:** Already guarded: the composite foreign key makes a disagreeing
+  row impossible (tested).
+
+### T35 — A crash at the wrong moment can orphan a file · Active · (D14)
+- **We accept:** The file is moved into `storage/files/` and then the DB row
+  is inserted. If the process dies between those two steps, the file stays
+  on disk with no row pointing to it. (Every *handled* error deletes it.)
+- **Hurts when:** Rarely; slowly wastes disk space over many crashes.
+- **Fix:** A cleanup job that deletes files in `files/` with no matching row,
+  and anything in `tmp/` older than an hour.
+
+### T36 — Oversized bodies without a declared size are read to the end · Active · (D14)
+- **We accept:** If a client doesn't send `Content-Length` (chunked upload),
+  busboy stops *saving* at 10 MB but Node still reads and discards the rest
+  of the body so it can send a clean 413.
+- **Hurts when:** Someone streams gigabytes at the endpoint to waste
+  bandwidth and CPU.
+- **Fix:** nginx `client_max_body_size` (in the deploy checklist) cuts these
+  off before they reach Node; the pending rate limiter limits repeats.
+
+### T37 — Duplicate-file check is exact bytes only · Active · (D14)
+- **We accept:** Same SHA-256 = duplicate. The same statement re-downloaded
+  later (e.g. with a different "generated on" line), or an overlapping
+  statement, has different bytes and is accepted as a new upload.
+- **Hurts when:** Overlapping transactions would be counted twice.
+- **Fix:** Planned in parsing: row-level dedupe (`edge_hdfc_overlap_*` sample).
+
+### T38 — An unauthenticated upload's body is still read and discarded · Active
+- **We accept:** `requireAuth` rejects before any byte is *stored*, but
+  Node still reads the rest of the incoming body to keep the connection
+  usable.
+- **Hurts when:** Bandwidth abuse by unauthenticated clients.
+- **Fix:** Same as T36 (nginx size cap, rate limiter); optionally send
+  `Connection: close` on 401s for `/uploads`.
+
+### T41 — Offset pagination for the uploads list · Active · (D17)
+- **We accept:** `LIMIT/OFFSET`. Postgres still walks past all skipped rows,
+  and if a new upload arrives between page 1 and page 2, every row shifts by
+  one, so one upload appears on both pages.
+- **Hurts when:** A user has thousands of uploads, or uploads while paging.
+  (Unlikely: a user uploads a few statements a month.)
+- **Fix:** Keyset/cursor pagination: `WHERE (created_at, id) < ($cursor)`
+  with an opaque `nextCursor` in the response.
 
 ## Validation & errors
 

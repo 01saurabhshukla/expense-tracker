@@ -4,6 +4,7 @@ import { requestId } from './middleware/requestId.js';
 import { requestLogger } from './middleware/logger.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { authRouter } from './routes/auth.routes.js';
+import { uploadsRouter } from './routes/uploads.routes.js';
 
 export function createApp() {
   const app = express();
@@ -19,6 +20,7 @@ export function createApp() {
   });
 
   app.use('/auth', authRouter);
+  app.use('/uploads', uploadsRouter);
 
   app.use(notFound);
   app.use(errorHandler);

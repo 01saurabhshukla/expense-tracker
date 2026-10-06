@@ -43,6 +43,15 @@ steps (middleware → parse CSV → categorize → DB insert).
 - OpenTelemetry; reuse the existing request ID so logs and traces link up.
 - Do it together with metrics, before deployment.
 
+### Resumable uploads (option B)
+Chosen for a later stage; uploads currently restart from zero (option A).
+- tus protocol: `@tus/server` on the backend, `tus-js-client` in the frontend.
+- After a network drop the client asks "how many bytes do you have?"
+  (`HEAD` → `Upload-Offset`) and continues from there.
+- Needs: storage for partial uploads, expiry + cleanup job for abandoned ones,
+  the same fail-closed checks (D14) run once the upload completes.
+- Trade-off entry: T32.
+
 ## Up next (in order)
 
 - [x] Auth (D12), in three sub-steps:
@@ -52,10 +61,31 @@ steps (middleware → parse CSV → categorize → DB insert).
   - Frontend must handle: access token in memory, on 401 `TOKEN_EXPIRED` call
     `/auth/refresh` once (shared promise, see T28) then retry; on any other
     401 go to login. Requests to `/auth/*` need `credentials: 'include'`.
-- [ ] CSV upload: parsing, categorization, duplicate detection
-      (adds `uploads`, `transactions`, `categories` tables as migrations)
+- [x] Upload (D14): file intake only, no parsing
+  - [x] 5a: `uploads` table (migration 003) + `POST /uploads`: auth before
+        body, streaming via busboy to a temp file, size limit, cleanup on
+        abort, SHA-256, empty / non-UTF-8 / NUL-byte rejection, 409 on duplicate
+        (response includes the existing upload id)
+  - [x] 5a+: `stored_files` table (migration 004): path mapped to user (D16)
+  - [x] 5b: `GET /uploads`, `GET /uploads/:id` (other users' → 404) (D17)
+  - [x] 5c: edge-case tests: dropped connection, size limits (declared,
+        streamed, exact boundary), two files, broken multipart, all sample
+        statements (copied to `backend/tests/fixtures/statements/`)
+  - Network drops: restart from zero (A) now; resumable (B) is in Pending
+- [ ] Excel upload gate (D15): `.xlsx` only via `exceljs`; inspect the zip's
+      table of contents first (max uncompressed size, max ratio, max entries);
+      reject `.xls` with "save as .xlsx or CSV"
+- [ ] **Parsing — BLOCKED: do not start until the user explicitly confirms.**
+      Header detection, column mapping per bank, dates/amounts, Dr/Cr,
+      per-row Zod validation, row-level dedupe, categorization.
+      Fixtures: backend/tests/fixtures/statements (HDFC, SBI, ICICI, Axis, Kotak + edge cases)
+      **Must not delete the stored file**, on success or failure (D16).
+      Needs: a way to re-upload a file whose parse failed (today it gets
+      409 DUPLICATE_FILE) — e.g. `UNIQUE … WHERE status <> 'failed'`.
+- [ ] **Decide later:** file retention policy (when, if ever, accepted files
+      are deleted; user-initiated delete; account deletion) — T34, T39
 - [ ] Reports: dashboard data, CSV/PDF export
 - [ ] Frontend (React + Vite)
-- [ ] Rate limiter, metrics, tracing (from Pending above)
+- [ ] Rate limiter, metrics, tracing, resumable uploads (from Pending above)
 - [ ] Deployment: EC2 (backend), separate host (frontend)
 - [ ] Docs: README, architecture diagram, self-assessment
