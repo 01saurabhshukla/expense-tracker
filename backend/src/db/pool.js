@@ -1,6 +1,16 @@
 import pg from 'pg';
 import { env } from '../config/env.js';
 
+// bigint (int8) columns — amounts in paise, count(*) — arrive as strings by
+// default, because a JS number can't hold every int8 exactly. Ours are far
+// below 2^53 (₹90 trillion in paise), so they become numbers. If one ever
+// isn't, fail loudly instead of returning a silently rounded amount.
+pg.types.setTypeParser(pg.types.builtins.INT8, (text) => {
+  const value = Number(text);
+  if (!Number.isSafeInteger(value)) throw new Error(`int8 value ${text} is too large for a JS number`);
+  return value;
+});
+
 export const pool = new pg.Pool({
   connectionString: env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },

@@ -504,12 +504,12 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
   misreads ever happen in practice, fail the upload when mismatches are not
   explained by row errors.
 
-### T66 — The summary is fixed at upload time · Active · (D26)
+### T66 — The summary is fixed at upload time · Active (decided in D29) · (D26)
 - **We accept:** `byCategory` is a snapshot. If the user later corrects a
-  category, the stored summary still shows the old split.
+  category, the stored summary still shows the old split. Decided: the
+  upload summary is the *import report*; the dashboard is the live view.
 - **Hurts when:** The upload page and the dashboard disagree after a correction.
-- **Fix:** Recompute the summary when corrections touch that upload's rows
-  (transactions API step), or compute `byCategory` on read.
+- **Fix:** The frontend labels it "at import"; or compute `byCategory` on read.
 
 ### T67 — Only the first visible worksheet is read · Active · (D27)
 - **We accept:** Other sheets are ignored, even if they hold more transactions.
@@ -568,6 +568,32 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Hurts when:** It's a real bug that happens under load.
 - **Fix:** Re-run the measurement on EC2 with full logs; pm2 restarts the
   worker and the sweep re-queues the upload in the meantime.
+
+### T75 — OFFSET pagination for the transaction list · Active · (D29)
+- **We accept:** Page N makes Postgres skip N×limit rows (offset ≤ 100,000);
+  a row added between page loads can shift a row onto the next page.
+- **Hurts when:** Someone pages very deep, or imports while paging.
+- **Fix:** Keyset ("after this row") pagination like the export uses.
+
+### T76 — Deleting a rule doesn't undo what it did · Active · (D29)
+- **We accept:** Rows re-labelled by a rule keep that category after the
+  rule is deleted (they still show `categorySource: "user"`).
+- **Hurts when:** The user expects "delete rule" to restore the automatic
+  categories.
+- **Fix:** Re-run the rules for that merchant's rows on delete (store the
+  rule-based category alongside the user's).
+
+### T77 — A merchant-wide correction overwrites single-row corrections · Active · (D29)
+- **We accept:** "Always put SWIGGY in Travel" re-labels every SWIGGY row,
+  including one the user had individually set to something else.
+- **Hurts when:** The user made a deliberate one-off exception earlier.
+- **Fix:** Track `category_source = 'user_row'` vs `'user_rule'` and skip
+  per-row ones.
+
+### T78 — Text search scans the user's rows · Active · (D29)
+- **We accept:** `q` uses `ILIKE '%…%'`, which no ordinary index helps.
+- **Hurts when:** A user has hundreds of thousands of transactions.
+- **Fix:** A `pg_trgm` GIN index on `description`.
 
 ## Validation & errors
 

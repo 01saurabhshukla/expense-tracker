@@ -102,6 +102,7 @@ Chosen for a later stage; uploads currently restart from zero (option A).
   - [x] 7i: large files (200k rows): streaming + batched inserts (D28)
 - [ ] **Decide later:** file retention policy (when, if ever, accepted files
       are deleted; user-initiated delete; account deletion) — T34, T39
+- [x] Transactions API: list + filters, corrections (per row / per merchant), rules (D29)
 - [ ] Reports: dashboard data, CSV/PDF export
 - [ ] Frontend (React + Vite)
 - [ ] Rate limiter, metrics, tracing, resumable uploads (from Pending above)

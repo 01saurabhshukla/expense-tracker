@@ -5,6 +5,8 @@ import { requestLogger } from './middleware/logger.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { authRouter } from './routes/auth.routes.js';
 import { uploadsRouter } from './routes/uploads.routes.js';
+import { transactionsRouter } from './routes/transactions.routes.js';
+import { categoriesRouter } from './routes/categories.routes.js';
 
 export function createApp() {
   const app = express();
@@ -21,6 +23,8 @@ export function createApp() {
 
   app.use('/auth', authRouter);
   app.use('/uploads', uploadsRouter);
+  app.use('/transactions', transactionsRouter);
+  app.use('/categories', categoriesRouter);
 
   app.use(notFound);
   app.use(errorHandler);

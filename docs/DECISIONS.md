@@ -538,6 +538,37 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   50 MB uncompressed limit ≈ 100k rows. Memory no longer depends on them, so
   raising `UPLOAD_MAX_BYTES` is now only a time question (T72).
 
+### D29 — Transactions API and corrections
+- **Endpoints** (all behind `requireAuth`, all scoped to `req.user.id`):
+  - `GET /transactions?from&to&category&direction&uploadId&q&sort&limit&offset`
+    → `{ transactions, pagination: { limit, offset, hasMore } }` (limit ≤ 200,
+    sort `date_desc` default / `date_asc` / `amount_desc` / `amount_asc`).
+  - `PATCH /transactions/:id { category, applyToMerchant = true }`
+    → `{ transaction, rule, updatedCount }`.
+  - `GET /categories` (the fixed list), `GET /categories/rules`,
+    `DELETE /categories/rules/:id`.
+- **One filter definition** (`schemas/transactions.js` + `filterSql()`) is used
+  by the list, the dashboard and the exports, so what you see, what is
+  charted and what you download are always the same rows. Queries are
+  `strictObject`: a misspelt parameter is a 400, not silently ignored. Every
+  value is a SQL parameter; `q` escapes `%` and `_`.
+- **A correction with `applyToMerchant`** (the default) does three things in
+  one DB transaction: upsert the merchant's rule in `category_overrides`
+  (used by every future upload — layer 1, D25), re-label ALL the user's
+  transactions with that merchant key, and return the changed row. Without
+  it (or when the row has no merchant key) only that row changes. Changed
+  rows get `categorySource: "user"`. `SELECT … FOR UPDATE` serialises two
+  corrections of the same row.
+- **Deleting a rule** stops it applying to future uploads; existing rows
+  keep their category (T76).
+- **Upload summaries stay a snapshot** of the import (T66 decided): the
+  dashboard is the live view.
+- **bigint as numbers:** `pool.js` parses int8 into a JS number and throws
+  if it isn't a safe integer, so amounts are numbers in JSON and can never
+  be silently rounded.
+- **404 for everything not yours** (bad id, missing, someone else's), as for
+  uploads (D17).
+
 ---
 
 ## Revisit before deploying
