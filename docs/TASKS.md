@@ -105,6 +105,10 @@ Chosen for a later stage; uploads currently restart from zero (option A).
 - [x] Transactions API: list + filters, corrections (per row / per merchant), rules (D29)
 - [x] Dashboard API: totals, categories, gap-free timeline, top merchants (D30)
 - [x] Exports: streaming CSV (formula-safe) and PDF report (D31)
+- [x] CORS: exact allow-list from `CORS_ORIGINS`, unknown origins refused (D32)
+- [ ] Production readiness (limited DB role, Supabase CA, pooler/IPv6,
+      NODE_ENV, nginx, pm2 for API + worker, Redis config, CORS_ORIGINS,
+      cookie site) — see "Revisit before deploying" in DECISIONS.md
 - [ ] Frontend (React + Vite)
 - [ ] Rate limiter, metrics, tracing, resumable uploads (from Pending above)
 - [ ] Deployment: EC2 (backend), separate host (frontend)

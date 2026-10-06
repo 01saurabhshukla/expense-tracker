@@ -639,6 +639,25 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Fix:** Write references as `="0000006266119255"` (an Excel-only trick
   that other tools show literally), or offer an `.xlsx` export.
 
+### T85 — Requests with an unknown Origin are refused, not just hidden · Active · (D32)
+- **We accept:** Any request whose `Origin` isn't in `CORS_ORIGINS` gets 403,
+  including pages served from the API's own host (none today) and some
+  browser extensions.
+- **Hurts when:** A new frontend URL (preview deploys, a second domain) is
+  added without updating `CORS_ORIGINS`.
+- **Fix:** Add the origin to the env var; for preview deploys, a pattern
+  allow-list (carefully anchored).
+
+### T86 — The refresh cookie needs frontend and API on the same site · Planned · (D32)
+- **We accept:** `SameSite=Lax` means the browser only sends the refresh
+  cookie when the frontend and API share a registrable domain.
+- **Hurts when:** The frontend is deployed on another site (e.g. a
+  `*.vercel.app` URL calling an EC2 domain): refresh silently fails and users
+  are logged out every 15 minutes.
+- **Fix:** Use one domain (`app.` + `api.`), or switch to `SameSite=None;
+  Secure` plus a CSRF check on `/auth/refresh` (the Origin check in D32
+  already provides one). Decided in production readiness.
+
 ## Validation & errors
 
 ### T11 — Zod silently drops unknown fields · Active · (D8)

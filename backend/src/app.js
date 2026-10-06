@@ -2,6 +2,8 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import { requestId } from './middleware/requestId.js';
 import { requestLogger } from './middleware/logger.js';
+import { cors } from './middleware/cors.js';
+import { env } from './config/env.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { authRouter } from './routes/auth.routes.js';
 import { uploadsRouter } from './routes/uploads.routes.js';
@@ -15,6 +17,9 @@ export function createApp() {
 
   app.use(requestId);
   app.use(requestLogger);
+  // Before everything else that answers: even errors (401 TOKEN_EXPIRED)
+  // must carry the CORS headers, or the frontend can't read them.
+  app.use(cors(env.CORS_ORIGINS));
   app.use(express.json({ limit: '100kb' }));
   app.use(cookieParser());
 

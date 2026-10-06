@@ -615,6 +615,30 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   filters; 4,500 rows stream across pages in order without repeats; the
   PDF's text is checked with `pdf-parse` (dev dependency only).
 
+### D32 — CORS: an exact allow-list, and other origins refused
+- **`CORS_ORIGINS`** (env): comma-separated exact origins (scheme + host +
+  port). **Required in production** (startup fails without it); defaults to
+  `http://localhost:5173` (Vite) otherwise. Paths or trailing slashes are
+  rejected at startup.
+- **Own middleware** (`middleware/cors.js`, ~30 lines) instead of the `cors`
+  package, so the rules are visible:
+  - allowed origin → `Access-Control-Allow-Origin: <that origin>` (never
+    `*`), `Allow-Credentials: true` (the refresh cookie),
+    `Expose-Headers: X-Request-Id, Content-Disposition`; `Vary: Origin` always;
+  - preflight (`OPTIONS` + `Access-Control-Request-Method`) → 204 with
+    methods `GET, POST, PATCH, DELETE`, headers `Authorization, Content-Type,
+    X-Request-Id`, cached 10 min; no login needed;
+  - **an Origin not on the list → 403 `CORS_ORIGIN_NOT_ALLOWED`**, the request
+    is not processed at all. Plain CORS would process it and only hide the
+    answer; refusing also stops cross-site form posts. No Origin (curl,
+    server-to-server) → normal, still needs a token.
+- **Placed right after request id + logging**, before the routes, so errors
+  (e.g. 401 `TOKEN_EXPIRED`) carry the headers and the frontend can read them.
+- **Cookie note for deployment:** the refresh cookie is `SameSite=Lax`, so
+  the frontend and API must be on the *same site* (e.g.
+  `app.example.com` + `api.example.com`). Different sites would need
+  `SameSite=None; Secure` (T86).
+
 ---
 
 ## Revisit before deploying
@@ -628,7 +652,10 @@ Things that are fine for local dev but must change for production.
       group allowing only 80/443 (+ SSH from your IP).
 - [ ] **DB SSL:** `rejectUnauthorized: false` encrypts but doesn't verify the
       server certificate. Download Supabase's CA cert and verify it.
-- [ ] **CORS:** allow only the deployed frontend's origin.
+- [ ] **CORS:** set `CORS_ORIGINS` to the deployed frontend's origin (D32;
+      startup fails without it in production).
+- [ ] **Same site for frontend and API** (e.g. `app.` + `api.` of one domain)
+      so the `SameSite=Lax` refresh cookie is sent (T86).
 - [ ] **DB role:** app should use a limited role, not `postgres` (T20).
 - [ ] **NODE_ENV=production** on EC2, or the refresh cookie lacks `Secure` (T30).
 - [ ] **nginx `client_max_body_size 11m`**: caps upload bodies before they reach Node (T36).
