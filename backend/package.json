@@ -28,6 +28,10 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.1",
+    "yauzl": "^3.4.0",
     "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "yazl": "^3.3.1"
   }
 }

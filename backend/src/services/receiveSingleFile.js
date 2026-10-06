@@ -57,9 +57,12 @@ export async function receiveSingleFile(req, { maxBytes, tmpDir }) {
         }
 
         const originalFilename = cleanFilename(info.filename);
-        if (!/\.csv$/i.test(originalFilename)) {
+        // The extension only declares which checks to run; the content checks
+        // afterwards must agree with it, so a renamed file can't slip through.
+        const format = formatFromFilename(originalFilename);
+        if (format instanceof AppError) {
           stream.resume();
-          return reject(new AppError(415, 'UNSUPPORTED_FILE_TYPE', 'Only .csv files are supported'));
+          return reject(format);
         }
 
         const hash = createHash('sha256');
@@ -77,7 +80,7 @@ export async function receiveSingleFile(req, { maxBytes, tmpDir }) {
 
         // 'wx' = create, and fail if the file somehow already exists.
         fileWritten = pipeline(stream, meter, createWriteStream(tempPath, { flags: 'wx' }))
-          .then(() => ({ tempPath, sizeBytes, sha256: hash.digest('hex'), originalFilename }));
+          .then(() => ({ tempPath, sizeBytes, sha256: hash.digest('hex'), originalFilename, format }));
         fileWritten.catch(reject);
       });
 
@@ -106,6 +109,23 @@ export async function receiveSingleFile(req, { maxBytes, tmpDir }) {
     await removeFile(tempPath);
     throw err;
   }
+}
+
+const FORMAT_BY_EXTENSION = { '.csv': 'csv', '.xlsx': 'xlsx' };
+
+function formatFromFilename(filename) {
+  const extension = path.extname(filename).toLowerCase();
+  if (extension === '.xls') {
+    return new AppError(
+      415,
+      'LEGACY_OR_PROTECTED_WORKBOOK',
+      'Old .xls files are not supported. Open it in Excel or LibreOffice and save it as .xlsx or CSV.',
+    );
+  }
+  return (
+    FORMAT_BY_EXTENSION[extension] ??
+    new AppError(415, 'UNSUPPORTED_FILE_TYPE', 'Only .csv and .xlsx files are supported')
+  );
 }
 
 // The name is only ever displayed, never used as a path. Strip any directory

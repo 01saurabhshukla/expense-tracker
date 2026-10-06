@@ -10,19 +10,23 @@ import {
 } from '../db/queries/uploads.js';
 import { uploadIdSchema } from '../schemas/uploads.js';
 import { assertUtf8Text } from './fileChecks.js';
+import { assertSafeXlsx } from './xlsxChecks.js';
 import { moveToStorage, removeFile } from './uploadStorage.js';
 
 const PG_UNIQUE_VIOLATION = '23505';
 
+// Each format's content check must pass before the file is accepted.
+const CONTENT_CHECKS = { csv: assertUtf8Text, xlsx: assertSafeXlsx };
+
 // `received` comes from receiveSingleFile: a temp file that arrived completely
 // and within the size limit, but hasn't been checked yet.
 export async function createUpload(userId, received) {
-  const { tempPath, sizeBytes, sha256, originalFilename } = received;
+  const { tempPath, sizeBytes, sha256, originalFilename, format } = received;
   let absolutePath = null;
 
   try {
     if (sizeBytes === 0) throw new AppError(400, 'EMPTY_FILE', 'File is empty');
-    await assertUtf8Text(tempPath);
+    await CONTENT_CHECKS[format](tempPath);
 
     // Cheap early answer for the common case. The UNIQUE constraint below
     // still catches two identical uploads racing each other.
@@ -35,7 +39,7 @@ export async function createUpload(userId, received) {
 
     // Both rows or neither: an upload never exists without its file mapping.
     return await withTransaction(async (db) => {
-      const upload = await insertUpload(db, { id, userId, originalFilename, sizeBytes, sha256, format: 'csv' });
+      const upload = await insertUpload(db, { id, userId, originalFilename, sizeBytes, sha256, format });
       await insertStoredFile(db, { uploadId: id, userId, storagePath: stored.storagePath });
       return upload;
     });

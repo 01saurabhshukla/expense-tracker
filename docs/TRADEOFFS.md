@@ -242,7 +242,7 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
   (`@tus/server` + `tus-js-client`), plus a cleanup job for abandoned
   partial uploads. Decided for a later stage — see TASKS.md → Pending.
 
-### T33 — Legacy `.xls` files are rejected · Planned · (D15)
+### T33 — Legacy `.xls` files are rejected · Active · (D15)
 - **We accept:** Users whose bank only exports `.xls` (or HTML disguised as
   `.xls`) must re-save it as `.xlsx` or CSV first.
 - **Hurts when:** Less technical users don't know how to convert the file.
@@ -316,6 +316,22 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
   (Unlikely: a user uploads a few statements a month.)
 - **Fix:** Keyset/cursor pagination: `WHERE (created_at, id) < ($cursor)`
   with an opaque `nextCursor` in the response.
+
+### T42 — The .xlsx gate decompresses every upload once · Active · (D15)
+- **We accept:** Proving sizes means inflating up to 50 MB per `.xlsx`
+  upload (and parsing will inflate it again). Cost: up to ~0.5s of CPU.
+- **Hurts when:** Many large workbooks arrive at once on a small EC2 instance.
+- **Fix:** Pending rate limiter; lower the 50 MB cap; or merge the gate and
+  the parser into one pass once parsing exists (decompress once, with the
+  same caps).
+
+### T43 — Zip-bomb limits are fixed guesses · Active · (D15)
+- **We accept:** 200 entries, 50 MB expanded, 100:1 ratio for entries over
+  1 MB. A legitimate but unusual workbook (huge, very repetitive sheet)
+  could be rejected.
+- **Hurts when:** A real bank export trips a limit → `SUSPICIOUS_COMPRESSION`
+  or `XLSX_TOO_LARGE` for a genuine file.
+- **Fix:** Tune with real exports; limits live in `XLSX_LIMITS`.
 
 ## Validation & errors
 

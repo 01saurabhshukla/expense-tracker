@@ -72,10 +72,10 @@ Chosen for a later stage; uploads currently restart from zero (option A).
         streamed, exact boundary), two files, broken multipart, all sample
         statements (copied to `backend/tests/fixtures/statements/`)
   - Network drops: restart from zero (A) now; resumable (B) is in Pending
-- [ ] Excel upload gate (D15): `.xlsx` only via `exceljs`; inspect the zip's
+- [x] Excel upload gate (D15): `.xlsx` only; inspect the zip's
       table of contents first (max uncompressed size, max ratio, max entries);
       reject `.xls` with "save as .xlsx or CSV"
-- [ ] **Parsing — BLOCKED: do not start until the user explicitly confirms.**
+- [ ] **Parsing — confirmed by the user 2026-10-07.**
       Header detection, column mapping per bank, dates/amounts, Dr/Cr,
       per-row Zod validation, row-level dedupe, categorization.
       Fixtures: backend/tests/fixtures/statements (HDFC, SBI, ICICI, Axis, Kotak + edge cases)

@@ -206,6 +206,22 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   checking sizes up front stops zip bombs before any decompression.
 - **Readers design:** each format has a reader that turns a file into a grid
   of strings; one shared pipeline turns the grid into transactions.
+- **Implementation (step 6):** `src/services/xlsxChecks.js` with `yauzl`
+  (`strictFileNames`, `validateEntrySizes`). Order of checks:
+  1. First bytes: OLE2 signature (old `.xls` or password-protected workbook)
+     → 415 `LEGACY_OR_PROTECTED_WORKBOOK`; not `PK\3\4` → 400 `INVALID_XLSX`.
+  2. Table of contents: > 200 entries → `XLSX_TOO_COMPLEX`; declared total
+     > 50 MB → `XLSX_TOO_LARGE`; any entry > 1 MB with ratio > 100:1 →
+     `SUSPICIOUS_COMPRESSION`; encrypted entry or unsafe name → `INVALID_XLSX`.
+  3. **Every entry is actually decompressed and discarded.** Declared sizes
+     are claims made by the file's author; yauzl aborts the moment real
+     output exceeds the claim (tested with a zip that claims 1,000 bytes for
+     a 2 MB entry: stopped after 16 KB).
+  4. Must contain `[Content_Types].xml` and `xl/workbook.xml`.
+  The extension picks which checks run; the content must agree (an `.xlsx`
+  renamed `.csv` fails the text check, a CSV renamed `.xlsx` fails the zip
+  check). Migration 005 allows `format = 'xlsx'`. No cell is read here —
+  reading sheets is parsing.
 
 ## D16 — Accepted files are kept; their location is mapped per user
 - **Decision:**

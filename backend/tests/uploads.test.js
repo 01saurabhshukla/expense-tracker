@@ -131,8 +131,8 @@ test('an empty file → 400 EMPTY_FILE', async () => {
   assert.equal((await res.json()).error.code, 'EMPTY_FILE');
 });
 
-test('a non-.csv name → 415 UNSUPPORTED_FILE_TYPE', async () => {
-  const res = await upload(CSV, { filename: 'statement.xls' });
+test('an unsupported extension → 415 UNSUPPORTED_FILE_TYPE', async () => {
+  const res = await upload(CSV, { filename: 'statement.pdf' });
   assert.equal(res.status, 415);
   assert.equal((await res.json()).error.code, 'UNSUPPORTED_FILE_TYPE');
 });
