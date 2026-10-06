@@ -335,6 +335,34 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   `pickFields(cells, columns)` → raw strings by field name (normalizing them
   is 7c).
 
+## D22 — Row normalization: real values, per-row errors, a Zod final guard
+- **Decision:** `src/parsing/values.js` (single cells) and
+  `src/parsing/normalize.js` (whole rows). Each data row becomes a
+  transaction, a skip, or a row error `{ line, code, message }`.
+  - **Dates** → `'YYYY-MM-DD'` strings, day-first, formats `dd/mm/yy`,
+    `dd/mm/yyyy`, `dd-mm-yyyy`, `d Mon yyyy`, `dd-Mon-yyyy`; real calendar
+    dates only (no 31/02), years 2000–2099. A string, not a JS `Date`, so no
+    timezone can shift it.
+  - **Amounts** → whole paise via integer maths; commas only in a correct
+    Indian or Western grouping; empty/`-` = no amount; `0.00` = zero (ICICI's
+    unused column); negatives and `(…)` rejected; > ₹100 crore rejected.
+  - **Direction** from the layout: split columns (both filled → error) or
+    Amount + Dr/Cr. Balance optional; a Dr balance flag makes it negative.
+  - **Skips:** blank rows, and rows with non-date text and no amounts
+    (footers/notes). Processing continues after them.
+  - **Row errors:** MISSING_COLUMNS, UNEXPECTED_EXTRA_COLUMNS (filled cells
+    beyond the header width: columns may be shifted), INVALID_DATE,
+    INVALID_AMOUNT, NEGATIVE_AMOUNT, AMOUNT_TOO_LARGE, NO_AMOUNT,
+    BOTH_DEBIT_AND_CREDIT, INVALID_DIRECTION, INVALID_BALANCE,
+    MISSING_DESCRIPTION.
+  - **Zero valid rows** → `ParseError NO_VALID_TRANSACTIONS` (whole file fails).
+  - **Final guard:** every transaction is checked by a strict Zod schema. Bad
+    *data* never reaches it (that's a row error); failing it means a bug in
+    our code, so it throws and fails the job instead of storing bad values.
+- **Verified:** all five bank samples parse with 0 errors and their running
+  balances reconcile on every row; the malformed sample yields exactly its 3
+  valid rows and 7 specific errors.
+
 ---
 
 ## Revisit before deploying

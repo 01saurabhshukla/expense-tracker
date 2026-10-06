@@ -63,8 +63,10 @@ const BANKS = {
 
 for (const [file, expected] of Object.entries(BANKS)) {
   test(`${file}: header found past the preamble, columns mapped`, async () => {
-    const header = findHeader(await rowsOf(file));
+    const rows = await rowsOf(file);
+    const header = findHeader(rows);
     assert.equal(header.line, expected.line);
+    assert.equal(header.width, rows[header.index].cells.length);
     assert.equal(header.layout, expected.layout);
     assert.deepEqual(header.columns, expected.columns);
   });

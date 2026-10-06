@@ -3,9 +3,10 @@
 // request. The job records `code` and `message` on the upload as the reason
 // it failed, and the frontend shows them.
 export class ParseError extends Error {
-  constructor(code, message, { line } = {}) {
+  constructor(code, message, { line, details } = {}) {
     super(message);
     this.code = code;
     this.line = line;
+    this.details = details;
   }
 }

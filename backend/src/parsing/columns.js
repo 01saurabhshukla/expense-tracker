@@ -67,13 +67,14 @@ export function mapHeader(cells) {
 // `rows` are { line, cells } from a reader. Everything before the header is
 // preamble (bank name, account details) and is ignored.
 //
-// Returns { index, line, columns, layout }: `index` is the header's position
-// in `rows`, so data rows start at index + 1.
+// Returns { index, line, width, columns, layout }: `index` is the header's
+// position in `rows`, so data rows start at index + 1; `width` is how many
+// columns the header has, so rows with extra filled-in cells can be caught.
 export function findHeader(rows) {
   const limit = Math.min(rows.length, MAX_ROWS_BEFORE_HEADER);
   for (let index = 0; index < limit; index++) {
     const mapped = mapHeader(rows[index].cells);
-    if (mapped) return { index, line: rows[index].line, ...mapped };
+    if (mapped) return { index, line: rows[index].line, width: rows[index].cells.length, ...mapped };
   }
 
   throw new ParseError(

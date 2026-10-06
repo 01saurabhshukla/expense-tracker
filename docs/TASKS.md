@@ -79,13 +79,14 @@ Chosen for a later stage; uploads currently restart from zero (option A).
       Fixtures: backend/tests/fixtures/statements. Must not delete stored files (D16).
   - [x] 7a: CSV reader: file → rows of strings (quotes, CRLF, BOM). Pure, no DB. (D20)
   - [x] 7b: header detection + column mapping for 5 banks; else UNRECOGNIZED_FORMAT (D21)
-  - [ ] 7c: row normalization (dates, ₹ paise, Dr/Cr, footers) + per-row errors
+  - [x] 7c: row normalization (dates, ₹ paise, Dr/Cr, footers) + per-row errors (D22)
   - [ ] 7d: background job runner + stages + progress in DB; `transactions`
         table; save rows; row-level dedupe (keep both CHAI POINT ₹20);
         re-upload of a failed parse allowed; restart recovery
   - [ ] 7e: categorization layers 1–3 + 5 (user corrections, type rules,
         merchant rules, Uncategorized); hand-labelled evaluation set + accuracy
-  - [ ] 7f: summary (totals, by category, by month) shown when `completed`
+  - [ ] 7f: summary (totals, by category, by month) shown when `completed`;
+        include a running-balance check (flags gaps/misreads, as in the 7c tests)
   - [ ] 7g: `.xlsx` reader → same grid (reuses 7b–7f)
   - [ ] 7h: LLM layer 4 for leftovers (off by default), measured against 7e
   - [ ] 7i: large files (200k rows): streaming + batched inserts

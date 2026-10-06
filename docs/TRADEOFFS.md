@@ -399,6 +399,27 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Fix:** Look for bank names/IFSC prefixes (HDFC, SBIN, ICIC, UTIB, KKBK)
   in the preamble when the summary step needs it.
 
+### T52 — Dates are always read day-first · Active · (D22)
+- **We accept:** `03/04/26` is 3 April, never March 4. Two-digit years mean
+  20xx.
+- **Hurts when:** A statement from a non-Indian bank (US: month-first).
+- **Fix:** Detect from the file (a day > 12 in the first column proves the
+  order) or a per-format setting.
+
+### T53 — Footers are skipped, then processing continues · Active · (D22)
+- **We accept:** A row with non-date text and no amounts is skipped as a
+  note/footer, and we keep reading. Anything after it that looks like a
+  broken transaction becomes a row error rather than being silently ignored.
+- **Hurts when:** A bank adds a summary table after the transactions (e.g.
+  "Opening Balance, Debits, Credits" with numbers) → spurious row errors.
+- **Fix:** Stop at a known footer marker per format, once such exports exist.
+
+### T54 — A broken value date is ignored, not an error · Active · (D22)
+- **We accept:** If the (optional) value date can't be read, it's stored as
+  null and the row is kept; only the transaction date is required.
+- **Hurts when:** Rarely; value date is informational.
+- **Fix:** None planned.
+
 ## Validation & errors
 
 ### T11 — Zod silently drops unknown fields · Active · (D8)
