@@ -569,6 +569,27 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
 - **404 for everything not yours** (bad id, missing, someone else's), as for
   uploads (D17).
 
+### D30 — Dashboard API: one endpoint, live aggregates
+- **`GET /dashboard?<same filters as the list>&granularity=day|week|month`**
+  (default month) →
+  - `period { from, to }`: the dates the matching rows actually cover;
+  - `totals { count, debitPaise, creditPaise, netPaise }`;
+  - `byCategory`: with `name` and `kind`, only categories present, list order;
+  - `timeline`: one point per day / week (Monday, like Postgres
+    `date_trunc`) / month **with gaps filled by zeros**, each with
+    `spendingByCategory` (money out per category) for a stacked chart;
+  - `topMerchants`: the 10 merchants with the most money out (with their
+    most common category).
+- **Live, from `transactions`:** four aggregate queries run in parallel
+  with the shared `filterSql`, so a chart always matches the list behind it
+  (tested: totals equal sums over the list for five different filters).
+  Corrections show up immediately.
+- **Limit:** more than 1,000 points → 400 `TOO_MANY_PERIODS` (choose a
+  coarser grouping). The period list is built from the data's actual range,
+  never from a requested range, and stops one past the limit.
+- **Money in/out by direction**, not by category kind: transfers to your own
+  accounts count as money out (T80).
+
 ---
 
 ## Revisit before deploying

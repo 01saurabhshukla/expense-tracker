@@ -7,6 +7,7 @@ import { authRouter } from './routes/auth.routes.js';
 import { uploadsRouter } from './routes/uploads.routes.js';
 import { transactionsRouter } from './routes/transactions.routes.js';
 import { categoriesRouter } from './routes/categories.routes.js';
+import { dashboardRouter } from './routes/dashboard.routes.js';
 
 export function createApp() {
   const app = express();
@@ -25,6 +26,7 @@ export function createApp() {
   app.use('/uploads', uploadsRouter);
   app.use('/transactions', transactionsRouter);
   app.use('/categories', categoriesRouter);
+  app.use('/dashboard', dashboardRouter);
 
   app.use(notFound);
   app.use(errorHandler);

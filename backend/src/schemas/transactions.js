@@ -42,3 +42,8 @@ export const updateTransactionSchema = z.strictObject({
 export const transactionIdSchema = z.uuid();
 export const ruleIdSchema = z.uuid();
 
+// GET /dashboard — the same filters, plus how to group over time.
+export const GRANULARITIES = ['day', 'week', 'month'];
+export const dashboardQuerySchema = z
+  .strictObject({ ...filterShape, granularity: z.enum(GRANULARITIES).default('month') })
+  .refine(fromBeforeTo, fromBeforeToIssue);

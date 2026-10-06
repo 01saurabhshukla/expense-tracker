@@ -595,6 +595,29 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Hurts when:** A user has hundreds of thousands of transactions.
 - **Fix:** A `pg_trgm` GIN index on `description`.
 
+### T79 — Dashboard aggregates are computed on every request · Active · (D30)
+- **We accept:** Each dashboard load scans the user's matching rows (using
+  the `(user_id, date)` index) four times.
+- **Hurts when:** Users with hundreds of thousands of rows reload often.
+- **Fix:** Monthly roll-up table maintained at import / correction, or cache
+  per (user, filters) invalidated on change.
+
+### T80 — "Money out" includes moving money between your own accounts · Active · (D30)
+- **We accept:** Totals are by direction; a transfer to your own savings
+  account is money out, and the matching credit in the other account (if
+  uploaded too) is money in.
+- **Hurts when:** Someone uploads several of their own accounts and reads
+  the totals as spending.
+- **Fix:** Detect self-transfers (same amount out/in on the same day across
+  the user's accounts) or let the user mark a category as "not spending";
+  the frontend can show expense categories only.
+
+### T81 — The four dashboard queries are not one snapshot · Active · (D30)
+- **We accept:** They run in parallel on separate connections; an import
+  committing in between could make totals and categories differ briefly.
+- **Hurts when:** Rarely — only during an import, and the next load is right.
+- **Fix:** Run them in one `REPEATABLE READ` transaction (serially).
+
 ## Validation & errors
 
 ### T11 — Zod silently drops unknown fields · Active · (D8)
