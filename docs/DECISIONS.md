@@ -256,6 +256,66 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   tie-breaker keeps the order stable. Responses never include `sha256` or
   the storage path. `requireAuth` is applied once to the whole router.
 
+## D18 — Parsing runs in the background; the frontend polls stage + progress
+- **Decision:** `POST /uploads` runs only the fast safety gate (D14/D15) and
+  replies `201` with the upload id. A background worker then moves the upload
+  through stages: `queued → reading → validating → categorizing →
+  summarizing → completed` (or `failed` with a reason). Stage, progress
+  counters and the final summary are stored in the database;
+  `GET /uploads/:id` returns them, and the frontend polls it (~2s).
+- **Why:** User's decision: categorization and analysis may be slow; the user
+  must never be stuck waiting on the upload request, and must see each step.
+- **Two kinds of validation:** the safety gate stays *in* the request (fast,
+  and a dangerous file must be refused before it's ever stored); row-level
+  validation (dates, amounts, bank format) is the background `validating`
+  stage.
+- **Runner:** in-process job runner with a small concurrency limit (e.g. 2).
+  On startup, uploads stuck mid-stage are re-queued (safe: files are never
+  deleted, D16, and processing must be repeatable). No Redis/queue service.
+- **Bad rows:** good rows are saved; bad rows are reported with row number and
+  reason ("52 imported, 2 skipped"). Default chosen because the user didn't
+  pick; matches the sample README's expectation.
+- **Money:** stored as integer paise (₹1,250.00 → 125000) to avoid
+  floating-point drift in totals.
+
+## D19 — Categorization: layered rules first, LLM only for the leftovers
+- **Decision:** Each transaction goes through layers, first match wins:
+  1. the user's own corrections (remembered per merchant),
+  2. transaction-type rules (ATM/NWD → Cash, SALARY → Income, INTEREST,
+     SIP/MUTUAL FUND → Investments),
+  3. merchant rules (UPI handle or keyword → category),
+  4. LLM for what's still unknown (later sub-step),
+  5. otherwise `Uncategorized`.
+  Every transaction stores which layer decided (`user`/`rule`/`llm`/`none`).
+- **LLM guardrails:** off by default (`CATEGORIZER_LLM_ENABLED`); sends only
+  the merchant text (account/card numbers, names, amounts stripped); one
+  batched call per statement; result cached per merchant; answer must be one
+  of our category names or it's discarded.
+- **Why:** User wants a mix but doesn't know which performs best. Rules are
+  free, fast, predictable and testable; the LLM covers the long tail.
+- **How we'll decide "best":** a hand-labelled evaluation set built from the
+  sample statements; measure accuracy and % uncategorized for rules alone,
+  then rules + LLM (plus cost and time per statement).
+
+## D20 — CSV reader: `csv-parse`, read row by row, judge nothing
+- **Decision:** `src/parsing/readers/csvReader.js` is an async generator
+  yielding `{ line, cells }` per row, using `csv-parse` (zero dependencies,
+  maintained, streaming). Options: strip BOM, allow varying column counts,
+  keep stray quotes inside unquoted cells as characters, skip only truly
+  empty lines, 64 KB max per row.
+- **Why:**
+  - Row by row: a 200k-row file never sits in memory (needed for 7i).
+  - Hand-writing CSV quoting rules (quotes, escaped quotes, commas and line
+    breaks inside quotes) is easy to get subtly wrong; this is a solved problem.
+  - The reader only answers "what are the cells?". Preamble, short rows,
+    footers and text in amount columns pass through untouched for the next
+    stages to judge, keeping each stage simple and testable.
+  - Line numbers are the file's real line numbers (blank lines skipped but
+    counted), so error messages point at the right line.
+- **Errors:** invalid CSV (unclosed quote, giant row) → `ParseError`
+  `MALFORMED_CSV` with a line number. `ParseError` (`src/parsing/errors.js`)
+  has no HTTP status: it's recorded on the upload as the failure reason.
+
 ---
 
 ## Revisit before deploying

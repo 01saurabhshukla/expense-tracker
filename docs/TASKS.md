@@ -75,13 +75,20 @@ Chosen for a later stage; uploads currently restart from zero (option A).
 - [x] Excel upload gate (D15): `.xlsx` only; inspect the zip's
       table of contents first (max uncompressed size, max ratio, max entries);
       reject `.xls` with "save as .xlsx or CSV"
-- [ ] **Parsing — confirmed by the user 2026-10-07.**
-      Header detection, column mapping per bank, dates/amounts, Dr/Cr,
-      per-row Zod validation, row-level dedupe, categorization.
-      Fixtures: backend/tests/fixtures/statements (HDFC, SBI, ICICI, Axis, Kotak + edge cases)
-      **Must not delete the stored file**, on success or failure (D16).
-      Needs: a way to re-upload a file whose parse failed (today it gets
-      409 DUPLICATE_FILE) — e.g. `UNIQUE … WHERE status <> 'failed'`.
+- [ ] **Parsing & analysis — confirmed by the user 2026-10-07** (D18, D19)
+      Fixtures: backend/tests/fixtures/statements. Must not delete stored files (D16).
+  - [x] 7a: CSV reader: file → rows of strings (quotes, CRLF, BOM). Pure, no DB. (D20)
+  - [ ] 7b: header detection + column mapping for 5 banks; else UNRECOGNIZED_FORMAT
+  - [ ] 7c: row normalization (dates, ₹ paise, Dr/Cr, footers) + per-row errors
+  - [ ] 7d: background job runner + stages + progress in DB; `transactions`
+        table; save rows; row-level dedupe (keep both CHAI POINT ₹20);
+        re-upload of a failed parse allowed; restart recovery
+  - [ ] 7e: categorization layers 1–3 + 5 (user corrections, type rules,
+        merchant rules, Uncategorized); hand-labelled evaluation set + accuracy
+  - [ ] 7f: summary (totals, by category, by month) shown when `completed`
+  - [ ] 7g: `.xlsx` reader → same grid (reuses 7b–7f)
+  - [ ] 7h: LLM layer 4 for leftovers (off by default), measured against 7e
+  - [ ] 7i: large files (200k rows): streaming + batched inserts
 - [ ] **Decide later:** file retention policy (when, if ever, accepted files
       are deleted; user-initiated delete; account deletion) — T34, T39
 - [ ] Reports: dashboard data, CSV/PDF export

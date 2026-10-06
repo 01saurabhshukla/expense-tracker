@@ -333,6 +333,56 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
   or `XLSX_TOO_LARGE` for a genuine file.
 - **Fix:** Tune with real exports; limits live in `XLSX_LIMITS`.
 
+## Background processing & categorization
+
+### T44 — In-process job runner, no queue service · Planned · (D18)
+- **We accept:** Jobs run inside the Node process. A crash or restart stops
+  in-flight jobs; they're re-queued on startup and re-run from the start.
+  Only works with one backend server.
+- **Hurts when:** Several EC2 instances (each would pick up the same job),
+  or very long jobs repeatedly interrupted by deploys.
+- **Fix:** Postgres-backed queue with `SELECT … FOR UPDATE SKIP LOCKED`
+  (works across servers, no new infrastructure), or BullMQ + Redis.
+
+### T45 — Polling instead of push · Planned · (D18)
+- **We accept:** The frontend asks every ~2s. Up to 2s delay before it sees
+  a stage change, and many requests for a long job.
+- **Hurts when:** Many users processing at once (lots of small requests).
+- **Fix:** Server-Sent Events (`GET /uploads/:id/events`) pushing each stage.
+
+### T46 — Partial imports · Planned · (D18)
+- **We accept:** Bad rows are skipped and reported; the rest are saved.
+- **Hurts when:** A skipped row was real money (e.g. a misparsed date), so
+  totals are quietly off unless the user reads the "skipped" report.
+- **Fix:** Show skipped rows prominently in the summary; let users fix and
+  re-import them.
+
+### T47 — LLM categorization sends merchant text to a third party · Planned · (D19)
+- **We accept (when enabled):** Merchant descriptions leave our server for
+  an external API. Results can vary between runs; costs money per call;
+  adds latency; the API can be down.
+- **Hurts when:** Privacy expectations (financial data), cost at scale, or
+  inconsistent categories for similar merchants.
+- **Fix/guards:** Off by default; redact before sending; cache per merchant
+  so each is asked once; only accept our own category names; rules and user
+  corrections always win; fall back to `Uncategorized`.
+
+### T48 — CSV reader assumes commas · Active · (D20)
+- **We accept:** Only `,` is treated as the separator. Exports using `;`
+  (common in European locales) or tabs would read as one cell per row.
+- **Hurts when:** A bank or a spreadsheet app exports with `;` or tabs —
+  the file would later fail as `UNRECOGNIZED_FORMAT`, not crash.
+- **Fix:** Detect the separator from the first lines (count `,` `;` `\t`)
+  before parsing.
+
+### T49 — Stray quotes are tolerated · Active · (D20)
+- **We accept:** `relax_quotes` keeps a `"` that appears mid-cell as a
+  literal character instead of failing the file.
+- **Hurts when:** A genuinely broken file is read "successfully" with odd
+  cells; later stages must then catch the nonsense (bad dates/amounts).
+- **Fix:** None planned; real bank narrations do contain stray quotes
+  (e.g. `ABC"S STORE`), and later per-row validation catches bad values.
+
 ## Validation & errors
 
 ### T11 — Zod silently drops unknown fields · Active · (D8)
