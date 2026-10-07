@@ -768,16 +768,18 @@ Things that are fine for local dev but must change for production.
       `DB_POOL_MAX` sets connections per process (default 10).
 - [ ] **EC2 setup:** pm2 (restart on crash/reboot), nginx + HTTPS, security
       group allowing only 80/443 (+ SSH from your IP).
-- [ ] **DB SSL:** code done (D37); download Supabase's CA certificate, set
-      `DATABASE_CA_CERT`, and confirm `npm run db:check` says "verified".
+- [x] **DB SSL:** done (D37). `backend/certs/supabase-ca.crt` (Supabase Root
+      2021 CA, public, expires 2031-04-26) is in the repo; `npm run db:check`
+      reports "verified". Set `DATABASE_CA_CERT=certs/supabase-ca.crt` on EC2.
 - [ ] **CORS:** set `CORS_ORIGINS` to the deployed frontend's origin (D32;
       startup fails without it in production).
 - [ ] **Same site for frontend and API** (`app.` + `api.` of one domain, D34)
       so the `SameSite=Lax` refresh cookie is sent (T86).
 - [ ] **Vercel:** Root Directory `frontend`, `VITE_API_URL=https://api.<domain>`,
       domain `app.<domain>` (docs/DEPLOYMENT.md).
-- [ ] **DB role:** code done (D38); run `npm run db:app-role` on each
-      environment (local done when this box is ticked).
+- [x] **DB role:** done (D38). Local `.env` switched 2026-10-07; all 237 tests
+      pass as `expense_app`, which is refused DROP/CREATE/categories writes.
+      The EC2 `.env` gets the same two URLs (or run `db:app-role` there).
 - [ ] **NODE_ENV=production** on EC2, or the refresh cookie lacks `Secure` (T30).
 - [ ] **nginx `client_max_body_size 11m`**: caps upload bodies before they reach Node (T36).
 - [ ] **Encrypted EBS volume** for `storage/` (T34).
