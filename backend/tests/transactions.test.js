@@ -109,6 +109,10 @@ test('filters: category, direction, dates, text search, upload', async () => {
   const literalPercent = await get(alice, '/transactions?q=%25'); // "%" is text, not a wildcard
   assert.equal(literalPercent.body.transactions.length, 0);
 
+  const merchant = await get(alice, '/transactions?merchant=swiggy%40icici');
+  assert.equal(merchant.body.transactions.length, 3);
+  assert.ok(merchant.body.transactions.every((t) => t.merchantKey === 'swiggy@icici'));
+
   const byUpload = await get(alice, `/transactions?uploadId=${alice.hdfcUploadId}&limit=200`);
   assert.equal(byUpload.body.transactions.length, 54);
 });

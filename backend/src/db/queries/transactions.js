@@ -89,6 +89,7 @@ export function filterSql(userId, filters, alias = '') {
   if (filters.category) add(`${col('category')} = ?`, filters.category);
   if (filters.direction) add(`${col('direction')} = ?`, filters.direction);
   if (filters.uploadId) add(`${col('upload_id')} = ?`, filters.uploadId);
+  if (filters.merchant) add(`${col('merchant_key')} = ?`, filters.merchant);
   // % and _ are wildcards in LIKE; escape them so "50%" means the text "50%".
   if (filters.q) add(`${col('description')} ILIKE ? ESCAPE '\\'`, `%${filters.q.replace(/[\\%_]/g, '\\$&')}%`);
 

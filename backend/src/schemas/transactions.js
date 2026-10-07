@@ -11,6 +11,7 @@ export const filterShape = {
   direction: z.enum(['debit', 'credit']).optional(),
   uploadId: z.uuid().optional(),
   q: z.string().trim().min(1).max(100).optional(), // text in the description
+  merchant: z.string().min(1).max(200).optional(), // exact merchant key (top merchants → their rows)
 };
 
 export const SORTS = ['date_desc', 'date_asc', 'amount_desc', 'amount_asc'];

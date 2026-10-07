@@ -44,7 +44,7 @@ function startDownload(res, contentType, filename) {
 
 // "category: Food & Dining, from 01/09/2026" — printed on the report so a
 // filtered report can't be mistaken for a full one.
-function describeFilters({ from, to, category, direction, uploadId, q }) {
+function describeFilters({ from, to, category, direction, uploadId, q, merchant }) {
   const parts = [];
   if (from) parts.push(`from ${formatDate(from)}`);
   if (to) parts.push(`to ${formatDate(to)}`);
@@ -52,6 +52,7 @@ function describeFilters({ from, to, category, direction, uploadId, q }) {
   if (direction) parts.push(direction === 'debit' ? 'money out only' : 'money in only');
   if (uploadId) parts.push('one statement only');
   if (q) parts.push(`description contains "${q}"`);
+  if (merchant) parts.push(`merchant: ${merchant}`);
   return parts.join(', ');
 }
 
