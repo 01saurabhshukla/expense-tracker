@@ -109,7 +109,8 @@ Chosen for a later stage; uploads currently restart from zero (option A).
 - [ ] Production readiness (limited DB role, Supabase CA, pooler/IPv6,
       NODE_ENV, nginx, pm2 for API + worker, Redis config, CORS_ORIGINS,
       cookie site) — see "Revisit before deploying" in DECISIONS.md
-- [ ] Frontend (React + Vite)
+- [x] Frontend (React + Vite) — all pages, session handling, tests, e2e smoke (D33)
+- [x] Deployment strategy: Vercel + EC2 + one domain, vercel.json (D34, docs/DEPLOYMENT.md)
 - [ ] Rate limiter, metrics, tracing, resumable uploads (from Pending above)
 - [ ] Deployment: EC2 (backend), separate host (frontend)
 - [ ] Docs: README, architecture diagram, self-assessment

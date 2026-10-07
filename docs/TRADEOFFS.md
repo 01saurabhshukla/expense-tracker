@@ -648,7 +648,7 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Fix:** Add the origin to the env var; for preview deploys, a pattern
   allow-list (carefully anchored).
 
-### T86 — The refresh cookie needs frontend and API on the same site · Planned · (D32)
+### T86 — The refresh cookie needs frontend and API on the same site · Planned (decided: D34) · (D32)
 - **We accept:** `SameSite=Lax` means the browser only sends the refresh
   cookie when the frontend and API share a registrable domain.
 - **Hurts when:** The frontend is deployed on another site (e.g. a
@@ -712,3 +712,45 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Hurts when:** EC2 has an older Node, or we need heavy mocking later.
 - **Fix:** Install Node 24 on EC2 (e.g. via nvm); add a library only if a test
   genuinely needs it.
+
+## Frontend & deployment
+
+### T87 — Every page load starts with a refresh · Active · (D33)
+- **We accept:** The access token lives only in memory, so each reload or
+  new tab asks `/auth/refresh` first (one extra request, ~100–300 ms).
+- **Hurts when:** Rarely; only the first paint waits a little.
+- **Fix:** None needed; it's the price of not storing tokens where scripts
+  can read them.
+
+### T88 — Cross-tab refresh protection needs the Web Locks API · Active · (D33)
+- **We accept:** Browsers without `navigator.locks` (very old ones) only get
+  per-tab protection; two such tabs refreshing at the same instant can end
+  the session.
+- **Hurts when:** Someone uses an outdated browser with several tabs.
+- **Fix:** A small grace period on the backend for a just-rotated token.
+
+### T89 — The CSP allows inline styles · Active · (D33)
+- **We accept:** `style-src 'unsafe-inline'`, because React sets `style=""`
+  for bar widths and the chart library does too.
+- **Hurts when:** An injection could restyle the page (it still can't run
+  scripts or send data elsewhere).
+- **Fix:** Draw bars with SVG attributes / CSS classes only, then drop it.
+
+### T90 — Status by polling · Active · (D33)
+- **We accept:** Upload pages poll every 1.5–2 s while processing.
+- **Hurts when:** Many users watch imports at once (many small requests).
+- **Fix:** Server-sent events from the API for stage changes.
+
+### T91 — Preview deployments can't log in to production · Active · (D34)
+- **We accept:** `*.vercel.app` previews are not in `CORS_ORIGINS` and not on
+  the cookie's site.
+- **Hurts when:** Reviewing a change end to end before merging.
+- **Fix:** A staging backend that allows a preview domain like
+  `preview.<domain>` (Vercel can assign one per branch).
+
+### T92 — The e2e smoke test leaves test users behind · Active · (D33)
+- **We accept:** `npm run e2e` signs up new `@e2e.example.test` users; there
+  is no API to delete accounts yet, so they're removed with one SQL line.
+- **Hurts when:** Running it against production repeatedly.
+- **Fix:** An account-deletion endpoint (also needed for the retention
+  decision, T34/T39).

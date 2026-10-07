@@ -639,6 +639,64 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   `app.example.com` + `api.example.com`). Different sites would need
   `SameSite=None; Secure` (T86).
 
+### D33 — Frontend: React + Vite, plain JavaScript, no state library
+- **Stack:** React 19, Vite 8, React Router 8, Recharts (only for the
+  timeline chart, loaded lazily: main bundle 301 KB instead of 660 KB).
+  Plain JS/JSX like the backend. Tests: Vitest + Testing Library; a
+  Playwright smoke test (`npm run e2e`) drives the real app in Chrome.
+- **Session handling (`src/api/client.js`):**
+  - access token **in memory only** (never localStorage, where an injected
+    script could read it); refresh token is the backend's httpOnly cookie;
+  - on page load, `/auth/refresh` restores the session from the cookie;
+  - every call goes through `request()`: refreshes a minute *before*
+    expiry, and on `TOKEN_EXPIRED` refreshes once and retries;
+  - **refreshes never overlap:** one shared promise per tab, and the Web
+    Locks API across tabs. The backend treats a reused refresh token as theft
+    and ends the session; measured without the lock, 3 of 4 tabs opened at
+    once were logged out; with it, 4 of 4 stay in;
+  - logout in one tab logs out every tab (BroadcastChannel).
+- **Session expiry mid-upload:** uploads use XMLHttpRequest (fetch has no
+  upload progress). The token is renewed before the upload starts if it has
+  less than a minute left (the backend checks it before reading the body);
+  a `TOKEN_EXPIRED` answer is refreshed and the file sent once more.
+- **Pages:** login, signup, dashboard (stat tiles, money in/out chart with a
+  table view, spending by category, top merchants), transactions (filters,
+  search, sort, pages, category correction with "always for this
+  merchant"), uploads (multi-file drop zone with progress, live list),
+  upload report (stages, % progress, balance check, problem rows), rules.
+- **Filters live in the URL** (`?from=…&category=…`): bookmarkable, Back
+  undoes a filter, and the exports get exactly the filters on screen.
+  The backend gained a `merchant` filter (exact merchant key) so "top
+  merchants" and "rules" can link to their transactions.
+- **Polling, not push:** the uploads list every 2 s while something is
+  processing, an upload page every 1.5 s; both pause in a hidden tab.
+- **Charts** follow the data-viz checks: one axis, two series with colours
+  validated for colour-blind separation in light and dark mode, a legend, a
+  hover tooltip and a table view; category spending is a labelled bar list
+  (the list is its own table). Light/dark follows the system.
+- **Security on the page:** a Content Security Policy injected at build time
+  (scripts only from the site; network only to the site and the API).
+
+### D34 — Deployment: Vercel (static frontend) + EC2 (API, worker, Redis), one domain
+- Full steps: `docs/DEPLOYMENT.md`.
+- **`app.<domain>` → Vercel, `api.<domain>` → EC2** with nginx + Let's
+  Encrypt. Same site, so the `SameSite=Lax` refresh cookie works (resolves
+  T86 for production); HTTPS on both avoids mixed-content blocking;
+  `CORS_ORIGINS` is the single app origin.
+- **Vercel hosts only the static build.** `frontend/vercel.json`: SPA
+  fallback to `index.html`, security headers (`frame-ancestors 'none'`,
+  `X-Frame-Options`, `nosniff`, referrer and permissions policies), assets
+  cached for a year, `index.html` never cached. Root Directory `frontend`,
+  `VITE_API_URL` set per environment.
+- **Not on Vercel:** the backend needs a long-running worker, a queue and
+  files on disk (D2, D9).
+- **Release order:** backend first (migrations only add), then frontend.
+  Rollback: Vercel "promote" an earlier deployment; backend `git checkout` +
+  `pm2 reload`.
+- **Examples** for the pending production-readiness step:
+  `docs/deploy/ecosystem.config.cjs` (pm2 starts Node directly so stop
+  signals reach the worker) and `docs/deploy/nginx.conf.example`.
+
 ---
 
 ## Revisit before deploying
@@ -654,8 +712,10 @@ Things that are fine for local dev but must change for production.
       server certificate. Download Supabase's CA cert and verify it.
 - [ ] **CORS:** set `CORS_ORIGINS` to the deployed frontend's origin (D32;
       startup fails without it in production).
-- [ ] **Same site for frontend and API** (e.g. `app.` + `api.` of one domain)
+- [ ] **Same site for frontend and API** (`app.` + `api.` of one domain, D34)
       so the `SameSite=Lax` refresh cookie is sent (T86).
+- [ ] **Vercel:** Root Directory `frontend`, `VITE_API_URL=https://api.<domain>`,
+      domain `app.<domain>` (docs/DEPLOYMENT.md).
 - [ ] **DB role:** app should use a limited role, not `postgres` (T20).
 - [ ] **NODE_ENV=production** on EC2, or the refresh cookie lacks `Secure` (T30).
 - [ ] **nginx `client_max_body_size 11m`**: caps upload bodies before they reach Node (T36).

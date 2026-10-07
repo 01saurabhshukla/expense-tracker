@@ -1,0 +1,31 @@
+import { Link } from 'react-router';
+import { formatRupees } from '../../lib/format.js';
+import { categoryName, useCategories } from '../../hooks/useCategories.js';
+import { toQuery } from '../../api/endpoints.js';
+
+export function TopMerchants({ merchants, filters }) {
+  const categories = useCategories();
+  if (merchants.length === 0) return <p className="muted">No merchants in this period.</p>;
+  return (
+    <div className="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Merchant</th><th>Category</th><th className="num">Payments</th><th className="num">Total</th></tr>
+        </thead>
+        <tbody>
+          {merchants.map((m) => (
+            <tr key={m.merchantKey}>
+              <td className="description">
+                <Link to={`/transactions?${toQuery({ ...filters, merchant: m.merchantKey })}`}>{m.merchantKey}</Link>
+              </td>
+              <td>{categoryName(categories, m.category)}</td>
+              <td className="num">{m.count}</td>
+              <td className="num">{formatRupees(m.debitPaise)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
