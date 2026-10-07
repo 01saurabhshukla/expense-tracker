@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { env } from '../config/env.js';
 import { validateBody } from '../middleware/validate.js';
 import { requireAuth } from '../middleware/auth.js';
+import { limits } from '../middleware/rateLimit.js';
 import { signupSchema, loginSchema } from '../schemas/auth.js';
 import { REFRESH_TOKEN_TTL_MS } from '../services/tokens.js';
 import * as authService from '../services/auth.service.js';
@@ -27,18 +28,19 @@ function clearRefreshCookie(res) {
   res.clearCookie(REFRESH_COOKIE, refreshCookieOptions);
 }
 
-authRouter.post('/signup', validateBody(signupSchema), async (req, res) => {
+authRouter.post('/signup', limits.signup(), validateBody(signupSchema), async (req, res) => {
   const user = await authService.signup(req.body);
   res.status(201).json({ user });
 });
 
-authRouter.post('/login', validateBody(loginSchema), async (req, res) => {
+// The limiter runs first: a refused attempt never reaches bcrypt.
+authRouter.post('/login', limits.login(), validateBody(loginSchema), async (req, res) => {
   const { refreshToken, ...result } = await authService.login(req.body);
   setRefreshCookie(res, refreshToken);
   res.json(result);
 });
 
-authRouter.post('/refresh', async (req, res) => {
+authRouter.post('/refresh', limits.refresh(), async (req, res) => {
   try {
     const { refreshToken, ...result } = await authService.refresh(req.cookies[REFRESH_COOKIE]);
     setRefreshCookie(res, refreshToken);

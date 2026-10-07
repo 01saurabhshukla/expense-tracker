@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "test": "node --env-file=.env --test",
+    "test": "RATE_LIMIT_ENABLED=false node --env-file=.env --test",
     "db:check": "node --env-file=.env scripts/db-check.js",
     "start": "node --env-file=.env src/server.js",
     "dev": "node --env-file=.env --watch src/server.js",

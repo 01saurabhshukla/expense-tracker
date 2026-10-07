@@ -14,9 +14,9 @@ import { AppError } from '../errors.js';
 // they still need a token like everyone else.
 const ALLOWED_METHODS = 'GET, POST, PATCH, DELETE';
 const ALLOWED_HEADERS = 'Authorization, Content-Type, X-Request-Id';
-// Headers the frontend may read: the request id (for support) and the
-// download's file name.
-const EXPOSED_HEADERS = 'X-Request-Id, Content-Disposition';
+// Headers the frontend may read: the request id (for support), the
+// download's file name, and how long to wait after a 429.
+const EXPOSED_HEADERS = 'X-Request-Id, Content-Disposition, Retry-After';
 const PREFLIGHT_CACHE_SECONDS = 600;
 
 export function cors(allowedOrigins) {

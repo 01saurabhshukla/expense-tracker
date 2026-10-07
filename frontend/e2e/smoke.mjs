@@ -10,6 +10,10 @@
 //   CHROME_PATH   a Chrome/Chromium binary (default /usr/bin/google-chrome)
 //   E2E_SHOTS     a folder for screenshots (default: none taken)
 //
+// Each run signs up 2 new users from your IP; the backend allows 5 sign-ups
+// per hour per IP. To run it repeatedly, start the backend with
+// RATE_LIMIT_ENABLED=false.
+//
 // Each run signs up NEW users (…@e2e.example.test) and uploads the sample
 // statements. Remove them afterwards with:
 //   DELETE FROM users WHERE email LIKE '%@e2e.example.test';

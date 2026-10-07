@@ -211,7 +211,7 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 
 ## Rate limiting
 
-### T9 — Fixed-window, in-memory rate limiter · Planned (postponed, see TASKS.md)
+### T9 — Fixed-window, in-memory rate limiter · Active · (D36)
 - **We accept:**
   - *Fixed window:* a client can send up to **2× the limit** right at the
     boundary (the end of one window plus the start of the next).
@@ -759,3 +759,10 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Hurts when:** Running it against production repeatedly.
 - **Fix:** An account-deletion endpoint (also needed for the retention
   decision, T34/T39).
+
+### T93 — Rate limits are per IP · Active · (D36)
+- **We accept:** Everyone behind one IP (an office, a college, a mobile
+  carrier's shared address) shares the limits, e.g. 5 sign-ups per hour.
+- **Hurts when:** Many real users come from one network.
+- **Fix:** Limit login per IP + email, and other routes per logged-in user
+  instead of per IP.

@@ -32,6 +32,9 @@ const envSchema = z.object({
   WORKER_CONCURRENCY: z.coerce.number().int().min(1).max(16).default(2),
   JOB_ATTEMPTS: z.coerce.number().int().min(1).max(10).default(3),
   JOB_BACKOFF_MS: z.coerce.number().int().min(0).default(2000),
+  // Rate limiting (D36). On by default; the test suite turns it off (tests
+  // log in far more often than a person) except in its own test file.
+  RATE_LIMIT_ENABLED: z.enum(['true', 'false']).default('true').transform((v) => v === 'true'),
   // Browser origins allowed to call the API (the frontend). Required in
   // production; in development it defaults to the Vite dev server.
   CORS_ORIGINS: originList.optional(),

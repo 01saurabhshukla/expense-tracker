@@ -707,6 +707,21 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
 - `req.ip` is now in every request log line, and the rate limiter (D36)
   keys on it.
 
+### D36 — A basic rate limiter: fixed window, in memory, per IP
+- `middleware/rateLimit.js`, ~60 lines, no library: a counter per client IP
+  (`req.ip`, D35) that resets at the end of each window; over the limit →
+  `429 RATE_LIMITED` with `Retry-After` and `details.retryAfterSeconds`;
+  every answer carries `RateLimit-Limit/Remaining/Reset`. Finished windows
+  are swept out so memory doesn't grow with every IP ever seen.
+- **Limits:** login 10 / 15 min (checked *before* bcrypt, so refused tries
+  cost nothing); signup 5 / hour; refresh 60 / 15 min; every route 300 / min.
+- **Placement:** the general limit right after CORS (a 429 is readable by the
+  frontend, which can also read `Retry-After`) and before body parsing.
+- **`RATE_LIMIT_ENABLED`** (default true). `npm test` sets it to false (tests
+  log in far more than a person); `tests/rateLimit.test.js` turns it on.
+- Accepted limits of the design are T9 (now Active); the fix when we run
+  more than one API process is a Redis-backed store.
+
 ---
 
 ## Revisit before deploying
