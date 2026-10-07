@@ -39,10 +39,13 @@ export async function startUploadWorker() {
   // Redis was down, unfinished uploads would sit forever. The sweep re-adds
   // the ones that have been stuck for a while; uploads already queued are
   // untouched because jobId = uploadId.
-  await sweepUnfinishedUploads();
-  const timer = setInterval(() => {
-    sweepUnfinishedUploads().catch((err) => log('error', 'Upload sweep failed', { error: err.message }));
-  }, SWEEP_INTERVAL_MS);
+  //
+  // A failed sweep (e.g. the database is briefly unreachable) is logged and
+  // tried again on the next interval. It must never crash the worker: jobs
+  // already in Redis can still be processed once the database is back.
+  const sweep = () => sweepUnfinishedUploads().catch((err) => log('error', 'Upload sweep failed', { error: err.message }));
+  await sweep();
+  const timer = setInterval(sweep, SWEEP_INTERVAL_MS);
   timer.unref();
 
   log('info', 'Upload worker started', { concurrency: env.WORKER_CONCURRENCY, prefix: env.QUEUE_PREFIX });

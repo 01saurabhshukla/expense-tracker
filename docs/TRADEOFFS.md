@@ -568,6 +568,11 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Hurts when:** It's a real bug that happens under load.
 - **Fix:** Re-run the measurement on EC2 with full logs; pm2 restarts the
   worker and the sweep re-queues the upload in the meantime.
+- **Likely cause found (2026-10-07):** the direct Supabase host is IPv6-only
+  and connections from the dev machine time out intermittently (seen three
+  times: a signup 500, and the worker crashing at startup because the first
+  sweep's error wasn't caught — now fixed, it's logged and retried). The
+  pooler connection string (IPv4) is the fix; it's on the deploy checklist.
 
 ### T75 — OFFSET pagination for the transaction list · Active · (D29)
 - **We accept:** Page N makes Postgres skip N×limit rows (offset ≤ 100,000);
