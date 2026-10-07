@@ -33,7 +33,23 @@ Done so far:
 3. **nginx + HTTPS:** `docs/deploy/nginx/*` installed (see below); one Let's
    Encrypt certificate for both names, renewed automatically.
 
-Next: 4. build and upload the website; 5. CI/CD (GitHub Actions).
+4. **Website:** `docs/deploy/deploy-frontend.sh` builds `frontend/` with
+   `VITE_API_URL=https://api.saurabh-shukla.duckdns.org`, checks the page's
+   CSP allows that API, uploads to a new `/var/www/expense-tracker/releases/<time>-<commit>`
+   folder, atomically switches `current` to it, and keeps the 5 newest
+   releases. The browser smoke test (`npm run e2e` with
+   `E2E_BASE_URL=https://saurabh-shukla.duckdns.org`) passed all 15 steps
+   against production; its test user and files were removed afterwards.
+
+Next: 5. CI/CD (GitHub Actions).
+
+Redeploy the website by hand (from the repository root):
+```
+VITE_API_URL=https://api.saurabh-shukla.duckdns.org DEPLOY_HOST=ubuntu@3.110.119.202 \
+DEPLOY_SSH_KEY_FILE=~/Downloads/node-server-key.pem docs/deploy/deploy-frontend.sh
+```
+Roll back: `ssh` in, `ls /var/www/expense-tracker/releases`, then
+`ln -sfn /var/www/expense-tracker/releases/<older> /var/www/expense-tracker/current`.
 
 ## nginx in detail
 
