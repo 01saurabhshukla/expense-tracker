@@ -26,8 +26,13 @@ function contentSecurityPolicy(apiUrl) {
   };
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
+  // Without the API address the built site would load as a blank page, so a
+  // build (e.g. on Vercel) must fail loudly instead.
+  if (command === 'build' && !/^https?:\/\//.test(env.VITE_API_URL ?? '')) {
+    throw new Error('VITE_API_URL must be set to the backend URL (e.g. https://api.example.com) before building. On Vercel: Settings → Environment Variables.');
+  }
   return {
     plugins: [react(), contentSecurityPolicy(env.VITE_API_URL ?? '')],
     server: {
