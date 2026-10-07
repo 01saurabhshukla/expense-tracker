@@ -17,7 +17,11 @@ export const pool = new pg.Pool({
   ssl: databaseSsl(env.DATABASE_CA_CERT, env.DATABASE_SSL),
   max: env.DB_POOL_MAX,
   idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
+  // Opening a connection to the Supabase pooler (Tokyo) takes ~0.9 s from
+  // the EC2 server and 1.3–3 s from a laptop in India, with occasional
+  // spikes: 5 s failed now and then ("connection timeout"). 15 s absorbs a
+  // slow network moment; a dead network still fails, just later.
+  connectionTimeoutMillis: 15_000,
 });
 
 // An idle connection can fail (e.g. the DB restarts). Without this listener

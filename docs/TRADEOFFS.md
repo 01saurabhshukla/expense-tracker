@@ -792,3 +792,15 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Fix:** Keep running `npm test` locally against Supabase before merging
   to `main` (it covers the skipped tests); a separate Supabase test project
   for CI if it ever matters.
+
+### T97 — The database is in Tokyo, the app and its users in India · Active
+- **We accept:** The Supabase project is in `ap-northeast-1` (Tokyo); the
+  EC2 server is in India. Opening a connection takes ~0.9 s from the server
+  (1.3–3 s from a laptop in India), and every query pays the distance.
+  Connections are reused, and the connect timeout is 15 s (was 5 s, which a
+  laptop's network spikes exceeded: "Upload sweep failed … connection
+  timeout").
+- **Hurts when:** Pages that run several queries feel slow; flaky networks
+  hit the timeout.
+- **Fix:** Create the Supabase project in the Mumbai region (`ap-south-1`),
+  next to the server, and move the data (pg_dump / restore + migrations).
