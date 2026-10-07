@@ -753,6 +753,24 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   policy for `expense_app`, so a new migration can't silently hide a table
   from the app.
 
+### D39 — Deployment on one EC2 with DuckDNS, and CI/CD with GitHub Actions
+- **Layout (until a domain is bought):** website and API on the EC2,
+  `saurabh-shukla.duckdns.org` and `api.saurabh-shukla.duckdns.org` (one
+  site for the cookie, no code changes). Vercel needs separate DNS records
+  per name, which DuckDNS can't do; the D34 Vercel plan still applies once a
+  domain exists. Full details and the nginx walkthrough: DEPLOYMENT.md.
+- **CI/CD:** two path-filtered workflows; tests on every push/PR, deploy
+  from `main` after tests pass. Backend tests use a throwaway Postgres +
+  Redis (as `expense_app`); `DATABASE_SSL=disable` exists only for that and
+  is refused in production. Deploys over SSH with a dedicated key and a
+  pinned host key; the server-side steps live in
+  `docs/deploy/deploy-backend.sh` and `deploy-frontend.sh` so a human can
+  run exactly the same deploy.
+- **Minutes:** the repository is public, so Actions minutes on GitHub's
+  standard runners are free; runs are still kept short (path filters,
+  cancelled stale test runs, npm cache, time limits): ~1 min backend tests,
+  ~20 s frontend.
+
 ---
 
 ## Revisit before deploying
@@ -766,8 +784,8 @@ Things that are fine for local dev but must change for production.
       `EMAXCONNSESSION`. The app uses nothing session-bound (no SET, advisory
       locks or named prepared statements), so transaction mode is safe.
       `DB_POOL_MAX` sets connections per process (default 10).
-- [ ] **EC2 setup:** pm2 (restart on crash/reboot), nginx + HTTPS, security
-      group allowing only 80/443 (+ SSH from your IP).
+- [x] **EC2 setup:** pm2 (restart on crash/reboot), nginx + HTTPS, security
+      group: 80/443 open, 4000/6379 closed (tested), SSH 22 open for CI, key-only (D39).
 - [x] **DB SSL:** done (D37). `backend/certs/supabase-ca.crt` (Supabase Root
       2021 CA, public, expires 2031-04-26) is in the repo; `npm run db:check`
       reports "verified". Set `DATABASE_CA_CERT=certs/supabase-ca.crt` on EC2.

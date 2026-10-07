@@ -41,7 +41,7 @@ Done so far:
    `E2E_BASE_URL=https://saurabh-shukla.duckdns.org`) passed all 15 steps
    against production; its test user and files were removed afterwards.
 
-Next: 5. CI/CD (GitHub Actions).
+5. **CI/CD:** see "CI/CD (GitHub Actions)" below.
 
 Redeploy the website by hand (from the repository root):
 ```
@@ -50,6 +50,64 @@ DEPLOY_SSH_KEY_FILE=~/Downloads/node-server-key.pem docs/deploy/deploy-frontend.
 ```
 Roll back: `ssh` in, `ls /var/www/expense-tracker/releases`, then
 `ln -sfn /var/www/expense-tracker/releases/<older> /var/www/expense-tracker/current`.
+
+## CI/CD (GitHub Actions)
+
+Two workflows in `.github/workflows/`, each watching only its own files:
+
+| Push changes… | `dev` / pull request | `main` |
+|---|---|---|
+| `backend/**`, `docs/deploy/deploy-backend.sh`, `docs/deploy/ecosystem.config.cjs` | **Backend** tests | tests, then **deploy the API + worker** |
+| `frontend/**`, `docs/deploy/deploy-frontend.sh` | **Frontend** tests | tests, then **build + deploy the website** |
+| only `docs/` (other files) | nothing | nothing |
+
+Both also have a "Run workflow" button (`workflow_dispatch`) for a manual
+redeploy.
+
+**Backend tests** run against a throwaway Postgres 17 + Redis created for
+the run (no Supabase password on GitHub, no test data in the real
+database): migrations as `postgres`, then the suite as `expense_app` with
+`DATABASE_SSL=disable` (the container has no TLS; production refuses this
+setting). The two certificate tests are skipped there; they run locally
+against Supabase. First run: 51 s. **Frontend tests:** 16 s.
+
+**Backend deploy** (from `main`, after the tests pass): SSH to the server
+with the deploy key, `git reset --hard <the tested commit>`, then
+`bash docs/deploy/deploy-backend.sh` as a separate step (bash must not run
+a script that is being replaced): `npm ci --omit=dev` → `npm run migrate`
+→ `pm2 startOrReload` (the worker gets 30 s to finish an import) →
+`/health` must answer within ~40 s, else the run fails and shows the log.
+A reload means ~2 s without the API (T94).
+
+**Frontend deploy** (from `main`): built on GitHub's machine (never on the
+1 GB server) by `docs/deploy/deploy-frontend.sh`, uploaded as a new
+release, `current` switched atomically.
+
+**Safety:** deploys of the same part run one at a time and are never
+cancelled half-way (test runs on other branches are); each job has a time
+limit (10–15 min); `permissions: contents: read`; secrets reach the shell
+only as environment variables; the runner trusts only the server's pinned
+ED25519 host key (`StrictHostKeyChecking=yes`).
+
+**Settings in GitHub** (repository → Settings → Secrets and variables → Actions):
+
+| Kind | Name | Value |
+|---|---|---|
+| Secret | `DEPLOY_SSH_KEY` | private key `~/.ssh/expense_tracker_deploy` (made only for deploys; its public half is in the server's `~/.ssh/authorized_keys`) |
+| Secret | `DEPLOY_HOST` | `ubuntu@3.110.119.202` |
+| Variable | `DEPLOY_KNOWN_HOSTS` | `3.110.119.202 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILZH+6+KrNhp995CPTt3ExImGrf/vjnW8gj+I+I0Pg3M` |
+| Variable | `VITE_API_URL` | `https://api.saurabh-shukla.duckdns.org` |
+
+**AWS security group:** SSH (22) open to `0.0.0.0/0`, because GitHub's
+machines connect from changing addresses. The server accepts keys only
+(password and keyboard login are off; checked with `sshd -T`) (T95).
+
+**Revoke the deploy key** if it ever leaks: delete its line
+(`github-actions-deploy@expense-tracker`) from `~/.ssh/authorized_keys` on
+the server and the secret on GitHub; make a new one.
+
+**Not deployed automatically:** nginx config changes (`docs/deploy/nginx/*`)
+and `backend/.env` changes; both are applied by hand on the server.
 
 ## nginx in detail
 

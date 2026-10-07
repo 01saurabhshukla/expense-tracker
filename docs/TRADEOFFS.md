@@ -766,3 +766,29 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Hurts when:** Many real users come from one network.
 - **Fix:** Limit login per IP + email, and other routes per logged-in user
   instead of per IP.
+
+### T94 — A backend deploy means ~2 seconds without the API · Active · (D39)
+- **We accept:** pm2 runs one API process (fork mode); a reload stops it and
+  starts the new one. Requests in those ~2 s fail (the frontend shows
+  "could not reach the server"; retrying works).
+- **Hurts when:** Someone is mid-upload or mid-request exactly at deploy time.
+- **Fix:** Two API processes in pm2 cluster mode (reload one at a time),
+  when RAM allows (each costs ~110 MB on the 1 GB machine).
+
+### T95 — SSH open to the whole internet · Active · (D39)
+- **We accept:** Port 22 accepts connections from anywhere so GitHub's
+  runners can deploy. Only keys work (password login is off), but bots will
+  keep trying.
+- **Hurts when:** A future OpenSSH vulnerability, or a leaked key.
+- **Fix:** Let the workflow open port 22 for its own IP via the AWS API for
+  the length of the deploy (needs AWS credentials on GitHub), or deploy
+  through AWS Systems Manager instead of SSH; fail2ban to slow bots.
+
+### T96 — CI tests a plain Postgres, not Supabase · Active · (D39)
+- **We accept:** GitHub's tests use a stock Postgres 17 without TLS; the two
+  certificate tests are skipped there.
+- **Hurts when:** Something behaves differently on Supabase (pooler, TLS,
+  extensions) and only shows up after deploying.
+- **Fix:** Keep running `npm test` locally against Supabase before merging
+  to `main` (it covers the skipped tests); a separate Supabase test project
+  for CI if it ever matters.
