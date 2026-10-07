@@ -104,7 +104,9 @@ Part of the pending **production readiness** step; the plan:
 4. **`backend/.env`:**
    ```
    NODE_ENV=production
-   DATABASE_URL=<Supabase pooler URL, limited role — not postgres>
+   DATABASE_URL=<Transaction pooler URL as expense_app — `npm run db:app-role` writes it>
+   MIGRATION_DATABASE_URL=<the postgres pooler URL, for migrations only>
+   DATABASE_CA_CERT=certs/supabase-ca.crt
    JWT_ACCESS_SECRET=<48 random bytes, base64url>
    CORS_ORIGINS=https://app.example.com
    TRUST_PROXY=loopback

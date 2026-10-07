@@ -81,13 +81,13 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Fix:** UUIDv7 (time-ordered) when Postgres 18 is available, or bigint
   internally with UUID only in public URLs.
 
-### T20 — Backend uses the `postgres` superuser role · Active
+### T20 — Backend uses the `postgres` superuser role · Superseded by D38 once `npm run db:app-role` has run
 - **We accept:** The app connects as `postgres`, which bypasses RLS and can do
   anything, including dropping tables.
 - **Hurts when:** A SQL injection bug or a leaked `DATABASE_URL` → full
   control of the database.
-- **Fix:** Before deploying, create a limited role that can only
-  SELECT/INSERT/UPDATE/DELETE our tables; use `postgres` only for migrations.
+- **Fix:** Done in D38: the app connects as `expense_app` (rows only, no
+  DDL, no RLS bypass); `postgres` only runs migrations.
 
 ### T21 — Tests run against the real Supabase project · Active
 - **We accept:** Database tests use the same project as development (user's

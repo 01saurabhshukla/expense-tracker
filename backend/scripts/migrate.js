@@ -1,5 +1,15 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { pool } from '../src/db/pool.js';
+import pg from 'pg';
+import { databaseSsl } from '../src/db/ssl.js';
+
+// Migrations change the schema, which the app's own limited role can't do
+// (D38). They run as the admin role: MIGRATION_DATABASE_URL if set,
+// otherwise DATABASE_URL (before the app role exists).
+const pool = new pg.Pool({
+  connectionString: process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL,
+  ssl: databaseSsl(process.env.DATABASE_CA_CERT),
+  max: 1,
+});
 
 const MIGRATIONS_DIR = new URL('../src/db/migrations/', import.meta.url);
 

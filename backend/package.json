@@ -10,7 +10,8 @@
     "migrate": "node --env-file=.env scripts/migrate.js",
     "worker": "node --env-file=.env src/worker.js",
     "dev:worker": "node --env-file=.env --watch src/worker.js",
-    "eval:categories": "node scripts/eval-categories.js"
+    "eval:categories": "node scripts/eval-categories.js",
+    "db:app-role": "node --env-file=.env scripts/create-app-role.js"
   },
   "repository": {
     "type": "git",

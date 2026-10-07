@@ -735,6 +735,24 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   key discarded) and must be refused. A second test connects with the real
   CA when `DATABASE_CA_CERT` is set.
 
+### D38 — The app connects as a limited role, `expense_app`
+- **Migration 011** creates `expense_app` (no password, NOLOGIN, so no
+  secret in the repo) with: row access (SELECT/INSERT/UPDATE/DELETE) on the
+  six app tables, SELECT only on `categories`, nothing on
+  `schema_migrations`, no DDL, no TRUNCATE, not superuser, no BYPASSRLS.
+- **Row-level security stays on** for every table (it keeps Supabase's
+  public REST API out); a policy lets `expense_app` through. Users are still
+  separated by the app's `WHERE user_id = …` (D17).
+- **`npm run db:app-role`** (run by the user): sets a random password, logs
+  in as `expense_app` through the same pooler to prove it works, and only
+  then rewrites `.env` (`DATABASE_URL` → expense_app; admin URL →
+  `MIGRATION_DATABASE_URL`), keeping a git-ignored backup. It never prints
+  the password; running it again rotates it.
+- **Migrations** use `MIGRATION_DATABASE_URL` (admin), the app never does.
+- **Guard for the future:** `tests/dbRole.test.js` fails if a table lacks a
+  policy for `expense_app`, so a new migration can't silently hide a table
+  from the app.
+
 ---
 
 ## Revisit before deploying
@@ -758,7 +776,8 @@ Things that are fine for local dev but must change for production.
       so the `SameSite=Lax` refresh cookie is sent (T86).
 - [ ] **Vercel:** Root Directory `frontend`, `VITE_API_URL=https://api.<domain>`,
       domain `app.<domain>` (docs/DEPLOYMENT.md).
-- [ ] **DB role:** app should use a limited role, not `postgres` (T20).
+- [ ] **DB role:** code done (D38); run `npm run db:app-role` on each
+      environment (local done when this box is ticked).
 - [ ] **NODE_ENV=production** on EC2, or the refresh cookie lacks `Secure` (T30).
 - [ ] **nginx `client_max_body_size 11m`**: caps upload bodies before they reach Node (T36).
 - [ ] **Encrypted EBS volume** for `storage/` (T34).
