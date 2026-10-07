@@ -703,9 +703,13 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
 
 Things that are fine for local dev but must change for production.
 
-- [ ] **DB connection string:** local uses the direct (IPv6-only) host. EC2
-      only has IPv6 if the VPC/subnet is configured for it → either enable
-      IPv6 on the instance or switch `DATABASE_URL` to the Supabase pooler.
+- [x] **DB connection string:** switched (2026-10-07) from the direct
+      IPv6-only host (intermittent timeouts) to the **Transaction pooler**
+      (IPv4, port 6543). The Session pooler (5432) was tried first: it caps
+      ALL processes at 15 connections and the test suite failed with
+      `EMAXCONNSESSION`. The app uses nothing session-bound (no SET, advisory
+      locks or named prepared statements), so transaction mode is safe.
+      `DB_POOL_MAX` sets connections per process (default 10).
 - [ ] **EC2 setup:** pm2 (restart on crash/reboot), nginx + HTTPS, security
       group allowing only 80/443 (+ SSH from your IP).
 - [ ] **DB SSL:** `rejectUnauthorized: false` encrypts but doesn't verify the

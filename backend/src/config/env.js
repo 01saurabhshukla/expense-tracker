@@ -20,6 +20,9 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DATABASE_URL: z.url(),
   PORT: z.coerce.number().int().positive().default(4000),
+  // Connections each process may open. Supabase's Session pooler allows 15
+  // in total across ALL processes (API + worker): size them to fit.
+  DB_POOL_MAX: z.coerce.number().int().min(1).max(50).default(10),
   JWT_ACCESS_SECRET: z.string().min(32, 'must be at least 32 characters'),
   UPLOAD_DIR: z.string().min(1).default(DEFAULT_UPLOAD_DIR),
   UPLOAD_MAX_BYTES: z.coerce.number().int().positive().default(10 * 1024 * 1024),

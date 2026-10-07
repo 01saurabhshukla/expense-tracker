@@ -14,7 +14,7 @@ pg.types.setTypeParser(pg.types.builtins.INT8, (text) => {
 export const pool = new pg.Pool({
   connectionString: env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
-  max: 10,
+  max: env.DB_POOL_MAX,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
 });
