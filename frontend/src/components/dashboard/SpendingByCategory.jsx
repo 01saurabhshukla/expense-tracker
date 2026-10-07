@@ -1,15 +1,18 @@
 import { Link } from 'react-router';
 import { formatRupees } from '../../lib/format.js';
 import { toQuery } from '../../api/endpoints.js';
+import { sortByAmount } from '../../lib/analysis.js';
 
-// Where the money went: one bar per category, biggest first. A single series,
-// so a single colour; every value is written next to its bar (this list IS
-// the table view). Clicking a category opens its transactions.
-export function SpendingByCategory({ byCategory, filters }) {
-  const spending = byCategory.filter((c) => c.debitPaise > 0).sort((a, b) => b.debitPaise - a.debitPaise);
+// Where the money went: one bar per category, highest or lowest first
+// (`order`: "desc" | "asc"). A single series, so a single colour; every
+// value is written next to its bar (this list IS the table view). Bars are
+// always measured against the largest, whatever the order. Clicking a
+// category opens its transactions.
+export function SpendingByCategory({ byCategory, filters, order = 'desc' }) {
+  const spending = sortByAmount(byCategory.filter((c) => c.debitPaise > 0), 'debitPaise', order);
   if (spending.length === 0) return <p className="muted">No money out in this period.</p>;
 
-  const max = spending[0].debitPaise;
+  const max = Math.max(...spending.map((c) => c.debitPaise));
   const total = spending.reduce((sum, c) => sum + c.debitPaise, 0);
   return (
     <div className="bar-list">

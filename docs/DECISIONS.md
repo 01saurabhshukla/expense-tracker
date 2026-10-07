@@ -792,6 +792,29 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   reload and phone-width checks (amounts must fit their tiles: a real
   overlap found at 390 px and fixed).
 
+### D41 — Dashboard analysis: two pies, "at a glance", highest/lowest sorting
+- **Pies (donuts), following the data-viz rules:** a pie only reads at a
+  glance with few slices and colours that always mean the same thing. So
+  13 spending categories become 4 fixed groups: Essentials (rent, bills,
+  groceries, health, transport, fuel), Lifestyle (food, shopping,
+  entertainment, travel), Savings & investments, Other (cash, transfers,
+  uncategorized). Money in: Salary, Money received, Interest, Other. Slots
+  1–3 of the validated palette (they pass the every-pair colour-blind check
+  in both themes) + neutral grey for Other; 2 px gaps; total in the middle;
+  the legend lists amount, share ("<1%" for tiny ones) and what each group
+  contains, so nothing depends on colour or hover. The full per-category
+  bar list stays below.
+- **"At a glance":** share of money in not spent; average spending per day
+  over the covered dates; the biggest single payment (one extra request,
+  same filters); spending vs the previous **complete** period. Periods the
+  statements only partly cover are excluded: comparing 6 days of October
+  with all of September looked like a 59% drop (found in a screenshot).
+  Changes are words and arrows ("↓ 12% less"), not red/green.
+- **Sorting:** "Highest first / Lowest first" on the category list and on
+  top merchants; re-sorts in the browser without refetching; bars stay
+  measured against the largest amount.
+- All analysis is pure functions in `frontend/src/lib/analysis.js` (11 tests).
+
 ---
 
 ## Revisit before deploying

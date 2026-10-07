@@ -124,6 +124,15 @@ try {
   await page.getByRole('cell', { name: '31 Aug', exact: true }).waitFor();
   step('dashboard: chart, weekly grouping, table view');
 
+  await page.locator('.donut svg').first().waitFor();
+  await page.getByText('Biggest single payment').waitFor();
+  const amounts = async () => (await page.locator('.bar-row .num').allTextContents()).map((t) => Number(t.replace(/[^\d.]/g, '').split('.').slice(0, 2).join('.')));
+  const highestFirst = await amounts();
+  await page.getByRole('group', { name: 'Sort categories by spending' }).getByRole('button', { name: 'Lowest first' }).click();
+  const lowestFirst = await amounts();
+  if (highestFirst[0] < highestFirst.at(-1) || lowestFirst[0] > lowestFirst.at(-1)) throw new Error('category sort did not switch order');
+  step('pies, "at a glance" and highest/lowest sorting');
+
   // ---- correction ----
   await page.getByRole('link', { name: 'Transactions' }).click();
   await page.getByLabel('Search').fill('chai point');

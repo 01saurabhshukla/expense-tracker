@@ -20,6 +20,8 @@
   --button: #1c5cab; /* filled buttons: white text at 6.4:1 */
   --series-1: #2a78d6; /* money out */
   --series-2: #eb6834; /* money in */
+  --series-3: #1baf7a; /* third pie slice (slots 1–3 pass every-pair checks) */
+  --other: #8a8882;    /* the "Other" slice: neutral, never a hue */
   --good: #006300;
   --good-wash: rgba(12, 163, 12, 0.12);
   --warning-wash: rgba(250, 178, 25, 0.18);
@@ -55,6 +57,8 @@
     --button: #256abf;
     --series-1: #3987e5;
     --series-2: #d95926;
+    --series-3: #199e70;
+    --other: #77756f;
     --good: #0ca30c;
     --good-wash: rgba(12, 163, 12, 0.16);
     --warning-wash: rgba(250, 178, 25, 0.16);
@@ -81,6 +85,8 @@
   --button: #256abf;
   --series-1: #3987e5;
   --series-2: #d95926;
+  --series-3: #199e70;
+  --other: #77756f;
   --good: #0ca30c;
   --good-wash: rgba(12, 163, 12, 0.16);
   --warning-wash: rgba(250, 178, 25, 0.16);
@@ -342,3 +348,23 @@ dialog form { display: grid; gap: 14px; }
 /* the auth pages' theme button, top right */
 .auth-page { position: relative; }
 .auth-theme { position: absolute; top: 16px; right: 16px; }
+
+/* ---------- dashboard analysis ---------- */
+
+.insight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+.insight { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
+.insight .label { color: var(--text-secondary); font-size: 0.85rem; font-weight: 500; }
+.insight .value { font-size: 1.35rem; font-weight: 650; margin-top: 2px; }
+.insight .hint { font-size: 0.82rem; color: var(--text-muted); overflow-wrap: anywhere; }
+
+.donut-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; }
+.donut { position: relative; width: 200px; height: 200px; flex: none; }
+.donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+.donut-center strong { font-size: 1rem; }
+.donut-center span { font-size: 0.75rem; color: var(--text-muted); }
+.donut-legend { flex: 1 1 220px; min-width: 0; display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.donut-legend li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 4px 10px; align-items: baseline; font-size: 0.9rem; }
+.donut-legend .swatch { width: 12px; height: 12px; border-radius: 3px; align-self: center; }
+.donut-legend .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.donut-legend .members { grid-column: 2 / -1; font-size: 0.78rem; color: var(--text-muted); }
+@media (max-width: 520px) { .donut { margin: 0 auto; } }

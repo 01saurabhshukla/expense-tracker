@@ -2,9 +2,13 @@ import { Link } from 'react-router';
 import { formatRupees } from '../../lib/format.js';
 import { categoryName, useCategories } from '../../hooks/useCategories.js';
 import { toQuery } from '../../api/endpoints.js';
+import { sortByAmount } from '../../lib/analysis.js';
 
-export function TopMerchants({ merchants, filters }) {
+// The 10 merchants with the most money out (from the API), shown highest or
+// lowest first (`order`: "desc" | "asc").
+export function TopMerchants({ merchants: unsorted, filters, order = 'desc' }) {
   const categories = useCategories();
+  const merchants = sortByAmount(unsorted, 'debitPaise', order);
   if (merchants.length === 0) return <p className="muted">No merchants in this period.</p>;
   return (
     <div className="table-wrap">
