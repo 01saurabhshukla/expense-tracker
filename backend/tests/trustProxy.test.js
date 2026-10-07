@@ -46,5 +46,7 @@ test('config: required in production, "true" is refused', async () => {
     );
   assert.match(await load({ NODE_ENV: 'production' }), /TRUST_PROXY: is required in production/);
   assert.match(await load({ TRUST_PROXY: 'true' }), /TRUST_PROXY: must be/);
-  assert.equal(await load({ NODE_ENV: 'production', TRUST_PROXY: 'loopback' }), 'ok');
+  assert.equal(await load({ NODE_ENV: 'production', TRUST_PROXY: 'loopback', DATABASE_CA_CERT: 'certs/ca.crt' }), 'ok');
+  // The CA certificate is required in production too (D37).
+  assert.match(await load({ NODE_ENV: 'production', TRUST_PROXY: 'loopback' }), /DATABASE_CA_CERT: is required in production/);
 });
