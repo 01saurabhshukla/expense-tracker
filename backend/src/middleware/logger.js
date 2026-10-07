@@ -7,6 +7,7 @@ export function requestLogger(req, res, next) {
       time: new Date().toISOString(),
       level: status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info',
       requestId: req.id,
+      ip: req.ip,
       method: req.method,
       path: req.originalUrl,
       status,

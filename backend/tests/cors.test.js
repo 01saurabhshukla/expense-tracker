@@ -100,7 +100,7 @@ async function loadEnv(overrides) {
 test('config: required in production, defaults to the Vite dev server otherwise, origins only', async () => {
   assert.match((await loadEnv({ NODE_ENV: 'production' })).error, /CORS_ORIGINS: is required in production/);
   assert.deepEqual((await loadEnv({ NODE_ENV: 'development' })).origins, ['http://localhost:5173']);
-  assert.deepEqual((await loadEnv({ NODE_ENV: 'production', CORS_ORIGINS: 'https://a.example, https://b.example:8443' })).origins, ['https://a.example', 'https://b.example:8443']);
+  assert.deepEqual((await loadEnv({ NODE_ENV: 'production', TRUST_PROXY: 'loopback', CORS_ORIGINS: 'https://a.example, https://b.example:8443' })).origins, ['https://a.example', 'https://b.example:8443']);
   assert.match((await loadEnv({ CORS_ORIGINS: 'https://a.example/' })).error, /must be an origin/);
   assert.match((await loadEnv({ CORS_ORIGINS: 'https://a.example/app' })).error, /must be an origin/);
 });

@@ -14,6 +14,9 @@ import { exportsRouter } from './routes/exports.routes.js';
 
 export function createApp() {
   const app = express();
+  // req.ip = the real client, read from X-Forwarded-For only when the request
+  // came through the proxy we trust (T10). The rate limiter keys on it.
+  app.set('trust proxy', env.TRUST_PROXY);
 
   app.use(requestId);
   app.use(requestLogger);

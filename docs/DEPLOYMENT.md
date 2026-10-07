@@ -107,6 +107,7 @@ Part of the pending **production readiness** step; the plan:
    DATABASE_URL=<Supabase pooler URL, limited role — not postgres>
    JWT_ACCESS_SECRET=<48 random bytes, base64url>
    CORS_ORIGINS=https://app.example.com
+   TRUST_PROXY=loopback
    UPLOAD_DIR=/var/lib/expense-tracker/storage
    ```
    `NODE_ENV=production` turns on the `Secure` cookie flag; the server

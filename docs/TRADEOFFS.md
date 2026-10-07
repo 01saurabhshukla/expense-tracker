@@ -223,7 +223,7 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Fix:** Sliding-window or token-bucket algorithm for smoother limits; Redis
   as a shared store, or `express-rate-limit` with a Redis store.
 
-### T10 — Client IP depends on correct `trust proxy` · Planned (postponed, see TASKS.md)
+### T10 — Client IP depends on correct `trust proxy` · Active · (D35)
 - **We accept:** Behind nginx, the real client IP comes from the
   `X-Forwarded-For` header, which we trust only from loopback (nginx on the
   same machine).

@@ -35,14 +35,33 @@ const envSchema = z.object({
   // Browser origins allowed to call the API (the frontend). Required in
   // production; in development it defaults to the Vite dev server.
   CORS_ORIGINS: originList.optional(),
+  // Which proxy to believe about the client's real IP (X-Forwarded-For):
+  // "loopback" = nginx on the same machine (EC2), a number = that many proxy
+  // hops, "false" = no proxy (local dev). Never "true": then anyone could
+  // fake their IP. Required in production (D35).
+  TRUST_PROXY: z
+    .string()
+    .regex(/^(false|loopback|[1-9])$/, 'must be "false", "loopback" or a number of proxy hops (1-9)')
+    .optional(),
 }).transform((env, ctx) => {
-  if (env.CORS_ORIGINS) return env;
-  if (env.NODE_ENV === 'production') {
-    ctx.addIssue({ code: 'custom', path: ['CORS_ORIGINS'], message: 'is required in production' });
+  const required = (key) => {
+    ctx.addIssue({ code: 'custom', path: [key], message: 'is required in production' });
     return z.NEVER;
-  }
-  return { ...env, CORS_ORIGINS: ['http://localhost:5173'] };
+  };
+  if (env.NODE_ENV === 'production' && !env.CORS_ORIGINS) return required('CORS_ORIGINS');
+  if (env.NODE_ENV === 'production' && !env.TRUST_PROXY) return required('TRUST_PROXY');
+  return {
+    ...env,
+    CORS_ORIGINS: env.CORS_ORIGINS ?? ['http://localhost:5173'],
+    TRUST_PROXY: parseTrustProxy(env.TRUST_PROXY ?? 'false'),
+  };
 });
+
+function parseTrustProxy(value) {
+  if (value === 'false') return false;
+  if (value === 'loopback') return 'loopback';
+  return Number(value);
+}
 
 const result = envSchema.safeParse(process.env);
 

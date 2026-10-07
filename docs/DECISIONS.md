@@ -697,6 +697,16 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   `docs/deploy/ecosystem.config.cjs` (pm2 starts Node directly so stop
   signals reach the worker) and `docs/deploy/nginx.conf.example`.
 
+### D35 — `trust proxy`: the real client IP, only from our own proxy
+- **`TRUST_PROXY`** (env): `loopback` on EC2 (nginx on the same machine),
+  a hop count if a load balancer is added, `false` in local dev (default).
+  **Required in production**; `true` is refused, because it would believe an
+  `X-Forwarded-For` header sent by anyone.
+- With `loopback`, Express takes the address nginx appended and ignores
+  anything the client put in front of it (tested with a forged chain).
+- `req.ip` is now in every request log line, and the rate limiter (D36)
+  keys on it.
+
 ---
 
 ## Revisit before deploying
