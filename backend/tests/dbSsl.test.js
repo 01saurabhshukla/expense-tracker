@@ -20,19 +20,23 @@ async function connectWith(ssl) {
 }
 
 test('without a CA file: encrypted, server not verified (local dev only)', () => {
-  assert.deepEqual(databaseSsl(undefined), { rejectUnauthorized: false });
+  assert.deepEqual(databaseSsl(undefined, 'require'), { rejectUnauthorized: false });
+});
+
+test('DATABASE_SSL=disable turns TLS off (throwaway CI database only)', () => {
+  assert.equal(databaseSsl('/any/ca.crt', 'disable'), false);
 });
 
 test('with a CA file: the certificate is loaded and verification is on', () => {
-  const ssl = databaseSsl(WRONG_CA);
+  const ssl = databaseSsl(WRONG_CA, 'require');
   assert.equal(ssl.rejectUnauthorized, true);
   assert.match(ssl.ca, /BEGIN CERTIFICATE/);
 });
 
-test('a server not signed by the given CA is refused (verification really happens)', async () => {
+test('a server not signed by the given CA is refused (verification really happens)', { skip: process.env.DATABASE_SSL === 'disable' && 'database has no TLS (CI container)' }, async () => {
   // Our real Supabase server, but we claim to trust only a made-up CA: an
   // impostor would look exactly like this, so the connection must fail.
-  await assert.rejects(connectWith(databaseSsl(WRONG_CA)), (err) => {
+  await assert.rejects(connectWith(databaseSsl(WRONG_CA, 'require')), (err) => {
     assert.match(err.message, /certificate/i);
     return true;
   });

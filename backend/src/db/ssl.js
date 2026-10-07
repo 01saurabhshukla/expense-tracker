@@ -9,7 +9,11 @@ import { readFileSync } from 'node:fs';
 //
 // Without it (local development only; production requires it, see env.js):
 // still encrypted, but the server's identity is not checked.
-export function databaseSsl(caCertPath) {
+//
+// `mode` "disable" turns TLS off entirely: only for a throwaway local
+// database (CI's Postgres container has no TLS). Production refuses it.
+export function databaseSsl(caCertPath, mode = process.env.DATABASE_SSL ?? 'require') {
+  if (mode === 'disable') return false;
   if (!caCertPath) return { rejectUnauthorized: false };
   return { ca: readFileSync(caCertPath, 'utf8'), rejectUnauthorized: true };
 }

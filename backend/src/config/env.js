@@ -22,6 +22,8 @@ const envSchema = z.object({
   // Path to Supabase's CA certificate (Dashboard → Database → SSL
   // Configuration → Download certificate). Required in production (D37).
   DATABASE_CA_CERT: z.string().min(1).optional(),
+  // "disable" only for a throwaway local database in CI (no TLS there).
+  DATABASE_SSL: z.enum(['require', 'disable']).default('require'),
   PORT: z.coerce.number().int().positive().default(4000),
   // Connections each process may open. Supabase's Session pooler allows 15
   // in total across ALL processes (API + worker): size them to fit.
@@ -57,6 +59,10 @@ const envSchema = z.object({
   if (env.NODE_ENV === 'production' && !env.CORS_ORIGINS) return required('CORS_ORIGINS');
   if (env.NODE_ENV === 'production' && !env.TRUST_PROXY) return required('TRUST_PROXY');
   if (env.NODE_ENV === 'production' && !env.DATABASE_CA_CERT) return required('DATABASE_CA_CERT');
+  if (env.NODE_ENV === 'production' && env.DATABASE_SSL !== 'require') {
+    ctx.addIssue({ code: 'custom', path: ['DATABASE_SSL'], message: 'must be "require" in production' });
+    return z.NEVER;
+  }
   return {
     ...env,
     CORS_ORIGINS: env.CORS_ORIGINS ?? ['http://localhost:5173'],

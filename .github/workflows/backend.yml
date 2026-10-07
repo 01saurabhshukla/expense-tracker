@@ -1,0 +1,107 @@
+# Backend: test on every push/PR that touches it; deploy to EC2 from main.
+# Runs only when backend files (or its deploy files) change (DEPLOYMENT.md).
+name: Backend
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'backend/**'
+      - 'docs/deploy/deploy-backend.sh'
+      - 'docs/deploy/ecosystem.config.cjs'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  workflow_dispatch: # "Run workflow" button, e.g. to redeploy
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # A newer push to the same branch cancels an older test run.
+    concurrency:
+      group: backend-test-${{ github.ref }}
+      cancel-in-progress: true
+
+    # A throwaway database and queue for this run only: no Supabase password
+    # on GitHub, no test data in the real database.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7.4-alpine
+        ports: ['6379:6379']
+
+    env:
+      NODE_ENV: test
+      DATABASE_SSL: disable # the container has no TLS
+      MIGRATION_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      DATABASE_URL: postgres://expense_app:ci-only@localhost:5432/postgres
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: ci-only-not-a-real-secret-0123456789
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Migrate (as postgres), then enable the app role
+        run: |
+          npm run -s migrate
+          PGPASSWORD=postgres psql -h localhost -U postgres -qc \
+            "ALTER ROLE expense_app WITH LOGIN PASSWORD 'ci-only'"
+
+      - name: Test (as expense_app, like production)
+        run: npm test
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Deploys run one at a time and are never cancelled half-way.
+    concurrency:
+      group: deploy-backend
+      cancel-in-progress: false
+
+    steps:
+      - name: SSH key and the server's known fingerprint
+        # Passed as environment variables, not pasted into the script text.
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ vars.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Update the code on the server, then deploy it
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        # Two separate steps on the server: first move the code to exactly
+        # the commit that passed the tests, then run the (updated) script.
+        run: |
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o StrictHostKeyChecking=yes "$DEPLOY_HOST" \
+            "cd ~/expense-tracker && git fetch -q origin main && git reset -q --hard ${{ github.sha }} && bash docs/deploy/deploy-backend.sh"

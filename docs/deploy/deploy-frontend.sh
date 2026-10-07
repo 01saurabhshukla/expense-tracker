@@ -20,7 +20,7 @@ set -euo pipefail
 
 : "${VITE_API_URL:?set VITE_API_URL, e.g. https://api.saurabh-shukla.duckdns.org}"
 : "${DEPLOY_HOST:?set DEPLOY_HOST, e.g. ubuntu@3.110.119.202}"
-SSH=(ssh -o BatchMode=yes)
+SSH=(ssh -o BatchMode=yes -o StrictHostKeyChecking=yes)
 [ -n "${DEPLOY_SSH_KEY_FILE:-}" ] && SSH+=(-i "$DEPLOY_SSH_KEY_FILE")
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
