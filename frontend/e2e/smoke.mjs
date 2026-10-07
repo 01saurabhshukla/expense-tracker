@@ -54,8 +54,33 @@ try {
   const page = await context.newPage();
   watch(page);
 
+  // ---- landing page and theme (logged out) ----
+  await page.goto(`${BASE}/`);
+  await page.getByRole('heading', { level: 1, name: /See where your money went/ }).waitFor();
+  await shot(page, '00-landing-light');
+  await page.getByRole('button', { name: 'Switch to dark theme' }).click();
+  await page.reload();
+  await page.getByRole('button', { name: 'Switch to light theme' }).waitFor(); // still dark after reload
+  if ((await page.evaluate(() => document.documentElement.dataset.theme)) !== 'dark') throw new Error('dark theme not remembered');
+  await shot(page, '00-landing-dark');
+  await page.getByRole('button', { name: 'Switch to light theme' }).click();
+  step('landing page; theme switch remembered across a reload');
+
+  const phone = await context.newPage();
+  await phone.setViewportSize({ width: 390, height: 844 });
+  await phone.goto(`${BASE}/`);
+  await phone.getByRole('heading', { level: 1, name: /See where your money went/ }).waitFor();
+  const landingOverflow = await phone.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  if (landingOverflow > 0) throw new Error(`the landing page scrolls sideways on a phone (${landingOverflow}px)`);
+  const cramped = await phone.$$eval('.landing-tile', (els) => els.filter((e) => e.querySelector('.value').scrollWidth > e.clientWidth).length);
+  if (cramped > 0) throw new Error(`${cramped} amount(s) overflow their tile on a phone`);
+  await shot(phone, '00-landing-phone');
+  await phone.close();
+  step('landing page at phone width: no sideways scrolling');
+
   // ---- sign up: the backend's validation message reaches the field ----
-  await page.goto(`${BASE}/signup`);
+  await page.getByRole('link', { name: 'Create account' }).click();
+  await page.waitForURL(/\/signup$/);
   await page.getByLabel('Name').fill('E2E Test');
   await page.getByLabel('Email').fill(`e2e-${Date.now()}@e2e.example.test`);
   await page.getByLabel('Password').fill('short');
@@ -162,8 +187,10 @@ try {
   await page.getByRole('button', { name: 'Log out' }).click();
   await page.getByRole('heading', { name: 'Log in' }).waitFor();
   await page.goto(`${BASE}/`);
+  await page.getByRole('heading', { level: 1, name: /See where your money went/ }).waitFor();
+  await page.goto(`${BASE}/transactions`);
   await page.getByRole('heading', { name: 'Log in' }).waitFor();
-  step('logout; a protected page now goes to login');
+  step('logout; "/" is the landing page again and protected pages go to login');
 } catch (err) {
   process.exitCode = 1;
   console.log('✗ FAILED:', err.message.split('\n')[0]);

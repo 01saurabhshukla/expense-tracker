@@ -771,6 +771,27 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   cancelled stale test runs, npm cache, time limits): ~1 min backend tests,
   ~20 s frontend.
 
+### D40 — Landing page and a remembered light/dark theme
+- **Landing page** (`frontend/src/pages/LandingPage.jsx`) at `/` for visitors
+  who aren't logged in; logged-in users still get the dashboard there, and
+  every other protected page still sends visitors to login (`RequireAuth`).
+  Designed first as a canvas mockup, then built with the app's own tokens.
+  Its copy only states what the app really does; the example dashboard uses
+  the sample HDFC statement's real figures, labelled as a sample.
+- **Theme:** a light/dark button on the landing page, the app header and the
+  login/signup pages. The choice is stored in `localStorage` and applied as
+  `data-theme` on `<html>`; until a choice is made, the operating system
+  decides. `public/theme-init.js` (a file, because the CSP forbids inline
+  scripts) applies it before the first paint, so a reload never flashes the
+  wrong theme. Charts re-read their colours on every change.
+- **Contrast fix found on the way:** filled buttons put white text on
+  `#3987e5` in dark mode (~3.7:1); a `--button` token (`#1c5cab` light,
+  `#256abf` dark) brings both themes above 4.5:1.
+- **Checked:** 8 new frontend tests (theme storage incl. blocked storage,
+  routing, the button); the browser smoke test gained landing, theme-after-
+  reload and phone-width checks (amounts must fit their tiles: a real
+  overlap found at 390 px and fixed).
+
 ---
 
 ## Revisit before deploying

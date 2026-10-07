@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet } from 'react-router';
 import { useAuth } from '../auth/AuthProvider.jsx';
+import { ThemeToggle } from './ThemeToggle.jsx';
 
 export function Layout() {
   const { user, logout } = useAuth();
@@ -18,6 +19,7 @@ export function Layout() {
         </nav>
         <div className="user-menu">
           <span className="user-name">{user?.name}</span>
+          <ThemeToggle />
           <button type="button" onClick={logout}>Log out</button>
         </div>
       </header>

@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../auth/AuthProvider.jsx';
 import { ErrorAlert, asApiError } from '../components/ErrorAlert.jsx';
 import { fieldErrors } from '../components/FieldErrors.js';
+import { ThemeToggle } from '../components/ThemeToggle.jsx';
 
 export function LoginPage() {
   const { status, login, notice } = useAuth();
@@ -31,6 +32,9 @@ export function LoginPage() {
   const errors = fieldErrors(error);
   return (
     <div className="auth-page">
+      <div className="auth-theme">
+        <ThemeToggle />
+      </div>
       <div className="card auth-card">
         <div>
           <h1>Log in</h1>

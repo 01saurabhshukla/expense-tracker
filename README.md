@@ -28,10 +28,11 @@ Sample statements to try it with: [`backend/tests/fixtures/statements/`](backend
 
 | Requirement | How it's met |
 |---|---|
+| Home page | A landing page for visitors (how it works, supported banks, how the data is protected), with sign-up and login. |
 | Authentication | Sign-up, login, logout. Short-lived access token (15 min, in memory) + rotating refresh token in an httpOnly cookie, with reuse detection. |
 | Upload | Drag-and-drop or file picker, several files at once, upload progress bar. CSV and `.xlsx`, up to 10 MB each. |
 | Parse, categorize, store | Recognises the column layouts of 5 Indian banks; validates every row; categorizes with rules plus the user's own corrections; stores in PostgreSQL. Runs in a background worker; the page shows live progress. |
-| Dashboard | Money in / out / net, a money-in-and-out chart per day / week / month (with a table view), spending by category, top merchants. Filters: period presets or custom dates, category. Responsive, light and dark. |
+| Dashboard | Money in / out / net, a money-in-and-out chart per day / week / month (with a table view), spending by category, top merchants. Filters: period presets or custom dates, category. Responsive; light and dark themes with a switch on every page (remembered on the device, otherwise follows the system). |
 | Corrections | Change a transaction's category; optionally "always" for that merchant (re-labels past transactions and future uploads). Rules page to review and remove them. |
 | Export | CSV of the filtered transactions (streamed, any size) and a PDF report (summary, category chart, tables). |
 | Errors and edge cases | Malformed/corrupt files, duplicates and overlapping statements, session expiry mid-upload, large files — see [section 5](#5-edge-cases-and-testing). |
@@ -314,8 +315,8 @@ CI database), and TypeScript (a deliberate choice for this project).
 | Suite | Count | What it covers |
 |---|---|---|
 | Backend (`backend/`, `npm test`) | **238** | Auth (signup, login, refresh rotation and reuse detection), validation, uploads (limits at exact boundaries, dropped connections, duplicates, every sample statement), `.xlsx` safety (zip bombs, legacy files), parsing (dates, Indian amounts, columns for 5 banks, malformed rows), background processing (retries, recovery after Redis loses jobs), deduplication, categorization (256 hand-labelled transactions), summaries and balance checks, large files (rollback when the last line breaks), transactions API, dashboard (totals cross-checked against the list), exports (CSV equals dashboard sums, formula injection, PDF content), CORS, rate limiting, trust proxy, database role permissions, TLS verification |
-| Frontend (`frontend/`, `npm test`) | **18** | Token refresh logic (shared refresh, retry on expiry, session end), money and date formatting, date presets, file checks, login page |
-| End-to-end (`frontend/`, `npm run e2e`) | **15 steps** | Real Chrome against a running app: sign-up → upload 4 files → duplicate refused → processing → upload report → dashboard and chart → category correction → rules → CSV and PDF export → reload keeps session → 3 tabs at once → phone width → dark mode → logout. Passed against production. |
+| Frontend (`frontend/`, `npm test`) | **26** | Token refresh logic (shared refresh, retry on expiry, session end), money and date formatting, date presets, file checks, login page, landing page routing, theme switch (incl. blocked storage) |
+| End-to-end (`frontend/`, `npm run e2e`) | **17 steps** | Real Chrome against a running app: landing page, theme remembered after reload, phone width → sign-up → upload 4 files → duplicate refused → processing → upload report → dashboard and chart → category correction → rules → CSV and PDF export → reload keeps session → 3 tabs at once → phone width → dark mode → logout. Passed against production. |
 
 Backend tests run against a real PostgreSQL and Redis (locally: Supabase;
 in CI: throwaway containers). The CI run takes ~1 minute.
@@ -362,7 +363,7 @@ in `backend/tests/fixtures/statements/`.
 
 ```bash
 cd backend && npm test        # 238 tests (needs the database and Redis from .env)
-cd frontend && npm test       # 18 tests
+cd frontend && npm test       # 26 tests
 cd frontend && npm run e2e    # browser test; needs backend, worker and frontend running
                               # and Chrome (CHROME_PATH=…); creates @e2e.example.test users
 ```

@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthProvider.jsx';
 import { signup } from '../api/endpoints.js';
 import { ErrorAlert, asApiError } from '../components/ErrorAlert.jsx';
 import { fieldErrors } from '../components/FieldErrors.js';
+import { ThemeToggle } from '../components/ThemeToggle.jsx';
 
 export function SignupPage() {
   const { status } = useAuth();
@@ -32,6 +33,9 @@ export function SignupPage() {
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
   return (
     <div className="auth-page">
+      <div className="auth-theme">
+        <ThemeToggle />
+      </div>
       <div className="card auth-card">
         <div>
           <h1>Create an account</h1>
