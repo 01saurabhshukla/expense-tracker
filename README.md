@@ -393,57 +393,39 @@ change.
 
 ## 8. Self-assessment
 
-<!-- DRAFT written from the project history — rewrite it in your own words before submitting. -->
+1. The docs contain the Expense Classification assignment, but earlier I
+   opted for Voice Feedback, as I was genuinely very curious about it. After
+   researching it, I understood that delivering it by Tuesday wouldn't be
+   possible, even with AI, considering a working prototype was required. From
+   that I learned that sometimes it is necessary to opt for the option which
+   can be done in the provided timeline.
 
-**Key design choices and trade-offs.** I built the processing as a
-background job with stages stored in PostgreSQL, so a large statement never
-blocks the upload request and the user sees live progress; the cost is a
-queue (Redis) and a worker to run and deploy. I store money as integer
-paise and dates as plain strings, which removed a whole class of rounding
-and time-zone bugs. Categorization is rule-based plus the user's own
-corrections rather than AI: it's predictable, explainable and free, but it
-only knows the merchants it was taught (unknown ones stay "Uncategorized"
-instead of being guessed). I chose one small EC2 server over serverless
-because the worker, the queue and the files on disk need a long-running
-machine; the trade-offs are a ~2-second gap during backend deploys and SSH
-open for CI. Every trade-off I accepted is written down with "when it
-hurts" and "how to fix it" in [`docs/TRADEOFFS.md`](docs/TRADEOFFS.md).
+2. I had an idea of using LLM-based classification in some cases, and for
+   that I thought of going with Ollama, but I didn't go for it. The reason was
+   that I would have needed a bigger instance, costing me more money, and
+   another Python service, which could have shown my capability or
+   understanding of Python but wouldn't have been a good call considering the
+   budget.
 
-**What worked well.** Measuring before optimizing: memory for 200,000 rows
-went from 425 MB to a flat ~76 MB once I streamed in batches. Testing the
-safety mechanisms by switching them off: without the cross-tab refresh lock
-3 of 4 tabs got logged out; with it, none. Cross-checking numbers between
-features (dashboard totals against the transaction list, CSV sums against
-the dashboard, every statement's running balance) caught mistakes early.
-The production smoke test in a real browser passes all 15 steps.
+3. About my experience of working on and making a project go live with vibe
+   coding: I didn't really enjoy it, since while working professionally I had
+   plenty of time to think about the system in all cases, which I was
+   completely missing here. But yes, I believe that is what the times require.
 
-**What can be improved.** Categorization accuracy is 256/256 on the sample
-statements, but those are the statements the rules were written against;
-real-world accuracy needs anonymised real data, and an optional AI layer for
-the leftovers is planned. Other planned work: a custom domain (and the
-website on a CDN), metrics and tracing, resumable uploads for slow
-networks, account deletion and a file-retention policy, and running two API
-processes so deploys have no downtime.
+4. I thought of using a Lambda function for CSV parsing, but again my current
+   thought was to reduce as many moving parts as I can, since if I add too
+   many services to show my understanding, it will be difficult for me to
+   back up my decisions considering the short deadline.
 
-**Difficulties and how I resolved them.**
-- *Bank formats:* five banks, five layouts (separate debit/credit columns
-  vs. one amount with a Dr/Cr flag, `01/09/26` vs. `1 Sep 2026`, Indian
-  grouping `1,33,250.00`). Solved with alias-based header detection and
-  strict per-field parsers, verified by the running-balance check.
-- *A cash-withdrawal rule trap:* SBI writes card purchases as
-  "POS ATM PURCH", so "contains ATM" would have marked fuel as cash; the
-  rule now lists exact withdrawal wordings.
-- *Excel dropped leading zeros* in references, so the CSV and `.xlsx` of
-  one statement would have been imported twice; fingerprints now compare
-  references without leading zeros.
-- *A flaky test* (1 in ~3 runs) turned out to be a real bug: the recovery
-  sweep re-queued uploads that were about to be processed; it now only
-  touches uploads that have been stuck for a minute.
-- *Infrastructure:* intermittent database timeouts came from Supabase's
-  IPv6-only direct host (fixed by the IPv4 pooler); the session pooler's
-  15-connection cap broke the test suite (fixed by the transaction pooler);
-  the login cookie needs the website and API on the same site, which shaped
-  the hosting (two names under one DuckDNS name).
+5. One cannot build everything at once, or simply, you cannot begin a project
+   which is fully developed, even when you know all the things that will be
+   required for the project. In Voice Feedback I started with adding
+   observability, metrics and traces but eventually failed to complete it. So
+   in this project I started with just the basic backend setup, then auth,
+   then CSV upload, then the background worker, then the frontend, and
+   because of that, observability and metrics are still in my pending task
+   list. But I feel a completed project is better than having a project which
+   has everything but isn't working well enough to provide a demo.
 
 ## 9. Further documentation
 
