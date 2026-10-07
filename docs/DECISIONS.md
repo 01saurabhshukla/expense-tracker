@@ -722,6 +722,19 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
 - Accepted limits of the design are T9 (now Active); the fix when we run
   more than one API process is a Redis-backed store.
 
+### D37 — Database TLS verified against Supabase's CA
+- **`DATABASE_CA_CERT`** (env): path to Supabase's CA certificate (Dashboard
+  → Database → SSL Configuration → Download certificate). With it, every
+  connection (app pool, migrate, db-check) requires a server certificate
+  signed by that CA for the requested host (`rejectUnauthorized: true`).
+  **Required in production.** Without it (dev only): encrypted, unverified.
+- One helper, `src/db/ssl.js` (`databaseSsl()`), so the pool and scripts
+  can't drift apart.
+- **Proven, not assumed:** `tests/dbSsl.test.js` connects to the real
+  database while trusting a made-up CA (`tests/fixtures/certs/wrong-ca.crt`,
+  key discarded) and must be refused. A second test connects with the real
+  CA when `DATABASE_CA_CERT` is set.
+
 ---
 
 ## Revisit before deploying
@@ -737,8 +750,8 @@ Things that are fine for local dev but must change for production.
       `DB_POOL_MAX` sets connections per process (default 10).
 - [ ] **EC2 setup:** pm2 (restart on crash/reboot), nginx + HTTPS, security
       group allowing only 80/443 (+ SSH from your IP).
-- [ ] **DB SSL:** `rejectUnauthorized: false` encrypts but doesn't verify the
-      server certificate. Download Supabase's CA cert and verify it.
+- [ ] **DB SSL:** code done (D37); download Supabase's CA certificate, set
+      `DATABASE_CA_CERT`, and confirm `npm run db:check` says "verified".
 - [ ] **CORS:** set `CORS_ORIGINS` to the deployed frontend's origin (D32;
       startup fails without it in production).
 - [ ] **Same site for frontend and API** (`app.` + `api.` of one domain, D34)

@@ -1,5 +1,6 @@
 import pg from 'pg';
 import { env } from '../config/env.js';
+import { databaseSsl } from './ssl.js';
 
 // bigint (int8) columns — amounts in paise, count(*) — arrive as strings by
 // default, because a JS number can't hold every int8 exactly. Ours are far
@@ -13,7 +14,7 @@ pg.types.setTypeParser(pg.types.builtins.INT8, (text) => {
 
 export const pool = new pg.Pool({
   connectionString: env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: databaseSsl(env.DATABASE_CA_CERT),
   max: env.DB_POOL_MAX,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,

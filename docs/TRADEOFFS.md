@@ -53,12 +53,12 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
 - **Fix:** Enable IPv6 on the EC2 VPC/subnet, or switch `DATABASE_URL` to the
   Supabase pooler string. Code doesn't change.
 
-### T6 — SSL without certificate verification · Dev-only · (applies to `pool.js` too)
+### T6 — SSL without certificate verification · Dev-only (fixed when DATABASE_CA_CERT is set, D37) · (applies to `pool.js` too)
 - **We accept:** `ssl: { rejectUnauthorized: false }` — traffic is encrypted but
   we don't verify we're talking to the real Supabase server.
 - **Hurts when:** Someone on the network path impersonates the DB server
   (man-in-the-middle) — they could read credentials and data.
-- **Fix:** Download Supabase's CA certificate and pass it as `ssl.ca`.
+- **Fix:** Done in D37: set `DATABASE_CA_CERT` (required in production).
 
 ### T18 — Hand-written migration runner · Active · (D10)
 - **We accept:**
