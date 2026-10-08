@@ -815,6 +815,20 @@ The full list of trade-offs, with when they hurt and how to fix them, lives in
   measured against the largest amount.
 - All analysis is pure functions in `frontend/src/lib/analysis.js` (11 tests).
 
+### D42 — API docs: a hand-written OpenAPI file, shown with Swagger UI at `/docs`
+- **`backend/openapi.yaml`** (OpenAPI 3.1) describes all 17 routes: inputs,
+  outputs, every error code, the auth flow. Written by hand rather than
+  generated from the zod schemas: the zod schemas only cover inputs, while
+  most of the value is in the responses and error codes, which live in
+  services and SQL. Checked with `redocly lint` (valid).
+- **`GET /docs`** is a small HTML page that loads Swagger UI from a CDN
+  (unpkg, pinned to 5.17.14); **`GET /docs/openapi.yaml`** serves the file.
+  No npm dependency, nothing to build. Public, like `/health`: it only
+  describes what the frontend already shows the world.
+- **Drift test** (`tests/docs.test.js`): every documented method + path must
+  reach a real route (not the 404 fallback). It can't catch a wrong
+  response shape, only a wrong or missing route (T98).
+
 ---
 
 ## Revisit before deploying

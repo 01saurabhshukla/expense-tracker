@@ -323,6 +323,8 @@ Part of the pending **production readiness** step; the plan:
    ```
    `NODE_ENV=production` turns on the `Secure` cookie flag; the server
    refuses to start without `CORS_ORIGINS` (D32).
+   To use "Try it out" on the API docs (`/docs`, D42), add the API's own
+   origin too: `CORS_ORIGINS=https://app.example.com,https://api.example.com` (T100).
 5. **Database:** `npm run migrate` once per release, before restarting.
 6. **Processes:** pm2 runs two: `npm start` (API) and `npm run worker`;
    `pm2 save` + `pm2 startup` so they come back after a reboot. Example:

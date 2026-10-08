@@ -12,6 +12,7 @@ step updates `DECISIONS.md` and `TRADEOFFS.md` when it lands.
 - [x] Zod body validation + central error handler with one error shape (D8)
 - [x] DB connection pool (D9), migration runner `npm run migrate` (D10),
       `users` table (D11)
+- [x] API docs: `backend/openapi.yaml` + Swagger UI at `GET /docs`, drift test (D42; T98–T100)
 
 ## Pending (postponed)
 

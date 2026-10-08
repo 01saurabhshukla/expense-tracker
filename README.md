@@ -248,6 +248,9 @@ by `npm run migrate` and tracked in `schema_migrations`.
 
 ### REST API
 
+Interactive docs: **`GET /docs`** (Swagger UI); the OpenAPI 3.1 file is
+[`backend/openapi.yaml`](backend/openapi.yaml), also served at `/docs/openapi.yaml`.
+
 All responses are JSON unless noted. Authenticated routes need
 `Authorization: Bearer <access token>`. Errors always look like
 `{ "error": { "status", "code", "message", "details", "requestId" } }`.
@@ -255,6 +258,7 @@ All responses are JSON unless noted. Authenticated routes need
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | GET | `/health` | — | Liveness check |
+| GET | `/docs` | — | Swagger UI for this API |
 | POST | `/auth/signup` | — | `{ name, email, password }` → 201 `{ user }` |
 | POST | `/auth/login` | — | `{ email, password }` → `{ user, accessToken, expiresIn }` + refresh cookie |
 | POST | `/auth/refresh` | cookie | New access token; rotates the refresh cookie |

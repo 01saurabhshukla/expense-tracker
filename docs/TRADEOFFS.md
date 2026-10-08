@@ -804,3 +804,31 @@ deploying; also tracked in DECISIONS.md → "Revisit before deploying") ·
   hit the timeout.
 - **Fix:** Create the Supabase project in the Mumbai region (`ap-south-1`),
   next to the server, and move the data (pg_dump / restore + migrations).
+
+### T98 — The API docs are written by hand · Active · (D42)
+- **We accept:** `openapi.yaml` is kept in sync by hand. The test only
+  proves each documented route exists; a changed response field or a new
+  error code isn't noticed.
+- **Hurts when:** Someone changes a response and forgets the YAML: the docs
+  quietly lie.
+- **Fix:** Generate the request parts from the zod schemas
+  (`z.toJSONSchema`), and add response schemas to the tests (validate real
+  responses against `openapi.yaml`).
+
+### T99 — Swagger UI loads from a CDN · Active · (D42)
+- **We accept:** `/docs` pulls Swagger UI's JS/CSS from unpkg.
+- **Hurts when:** unpkg is down or blocked (the page is blank; the API is
+  unaffected), or a strict Content-Security-Policy is added later.
+- **Fix:** Install `swagger-ui-dist` and serve its files from the API.
+
+### T100 — "Try it out" on POST/PATCH/DELETE needs the API's own origin in `CORS_ORIGINS` · Active · (D42)
+- **We accept:** Browsers send an `Origin` header even on same-origin
+  POST/PATCH/DELETE. The CORS guard (D32) refuses any origin not in
+  `CORS_ORIGINS`, so from `/docs` those calls (login included) get
+  `403 CORS_ORIGIN_NOT_ALLOWED`. GETs work.
+- **Hurts when:** Using "Try it out" to log in from the docs page.
+- **Fix (done where wanted):** add the API's own origin to `CORS_ORIGINS`
+  — locally `http://localhost:4000`, in production
+  `https://api.saurabh-shukla.duckdns.org`. Safe: the API's origin serves
+  only the docs page, nothing user-supplied. Alternative: let the guard
+  accept an `Origin` equal to the API's own host.

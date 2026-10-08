@@ -1,0 +1,791 @@
+openapi: 3.1.0
+info:
+  title: Expense Tracker API
+  version: 1.0.0
+  description: |
+    Upload bank statements (CSV / XLSX), get every transaction categorized,
+    correct categories, and see dashboards and exports.
+
+    **Money** is always whole paise (integers): ₹12.50 is `1250`.
+    **Dates** are plain `YYYY-MM-DD`, no time zone.
+
+    **Auth:** `POST /auth/login` returns a short-lived access token (15 min)
+    and sets an httpOnly `refresh_token` cookie (7 days, path `/auth`).
+    Send the access token as `Authorization: Bearer <token>`. On
+    `401 TOKEN_EXPIRED`, call `POST /auth/refresh` and retry.
+
+    **Errors** always have the same shape (see `Error`). A resource that
+    doesn't exist and one that belongs to someone else both answer `404`.
+
+    **Query parameters are strict:** an unknown parameter is a `400`, not
+    silently ignored.
+
+servers:
+  - url: /
+    description: This server
+
+tags:
+  - name: Health
+    description: Is the API up?
+  - name: Auth
+    description: Sign up, log in, refresh and log out
+  - name: Uploads
+    description: Bank statements and their background processing
+  - name: Transactions
+    description: List and correct transactions
+  - name: Categories
+    description: The category list and remembered merchant rules
+  - name: Dashboard
+    description: Aggregates for charts
+  - name: Exports
+    description: CSV and PDF downloads
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      tags: [Health]
+      summary: Liveness check
+      security: []
+      responses:
+        '200':
+          description: The API is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, const: ok }
+
+  # ---------- Auth ----------
+
+  /auth/signup:
+    post:
+      operationId: signup
+      tags: [Auth]
+      summary: Create an account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, name]
+              additionalProperties: false
+              properties:
+                email: { type: string, format: email, description: Trimmed and lower-cased }
+                password:
+                  type: string
+                  minLength: 8
+                  description: At least 8 characters and at most 72 bytes (bcrypt's limit)
+                name: { type: string, minLength: 1, maxLength: 100 }
+            example: { email: asha@example.com, password: correct-horse, name: Asha }
+      responses:
+        '201':
+          description: Account created (not logged in yet)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: '#/components/schemas/User' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '409':
+          description: '`EMAIL_TAKEN` — an account with this email already exists'
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [Auth]
+      summary: Log in
+      description: Returns an access token and sets the `refresh_token` cookie.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 1 }
+            example: { email: asha@example.com, password: correct-horse }
+      responses:
+        '200':
+          description: Logged in
+          headers:
+            Set-Cookie:
+              description: '`refresh_token=…; HttpOnly; SameSite=Lax; Path=/auth` (plus `Secure` in production)'
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: '#/components/schemas/User' }
+                  accessToken: { type: string, description: 'JWT; send it as `Authorization: Bearer …`' }
+                  expiresIn: { type: integer, description: Seconds until the access token expires, example: 900 }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401':
+          description: '`INVALID_CREDENTIALS` — email or password is wrong (the same answer for both)'
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      tags: [Auth]
+      summary: Get a new access token
+      description: |
+        Uses the `refresh_token` cookie and rotates it (the old one stops
+        working). Reusing an old refresh token ends the whole session.
+      security:
+        - refreshCookie: []
+      responses:
+        '200':
+          description: New access token; a new refresh cookie is set
+          headers:
+            Set-Cookie:
+              description: The rotated `refresh_token` cookie
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken: { type: string }
+                  expiresIn: { type: integer, example: 900 }
+        '401':
+          description: |
+            The cookie is cleared. Codes: `UNAUTHENTICATED` (no cookie),
+            `INVALID_REFRESH_TOKEN`, `REFRESH_TOKEN_EXPIRED`, `REFRESH_TOKEN_REUSED`.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [Auth]
+      summary: Log out
+      description: Revokes the refresh token (if any) and clears the cookie. Always succeeds.
+      security:
+        - refreshCookie: []
+      responses:
+        '204': { description: Logged out }
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [Auth]
+      summary: The current user
+      responses:
+        '200':
+          description: The logged-in user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  # ---------- Uploads ----------
+
+  /uploads:
+    post:
+      operationId: createUpload
+      tags: [Uploads]
+      summary: Upload a bank statement
+      description: |
+        One `.csv` (UTF-8) or `.xlsx` file, at most 10 MB, in a field named
+        `file`. The file is processed in the background: poll
+        `GET /uploads/{id}` until `stage` is `completed` or `failed`.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '201':
+          description: Accepted and queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  upload: { $ref: '#/components/schemas/Upload' }
+        '400':
+          description: |
+            The file was refused. Codes: `EMPTY_FILE`, `NO_FILE`, `TOO_MANY_FILES`,
+            `UNEXPECTED_FIELD`, `MALFORMED_UPLOAD`, `UPLOAD_ABORTED`,
+            `NOT_A_TEXT_FILE`, `INVALID_ENCODING`, `INVALID_XLSX`,
+            `LEGACY_OR_PROTECTED_WORKBOOK`, `XLSX_TOO_COMPLEX`, `XLSX_TOO_LARGE`,
+            `SUSPICIOUS_COMPRESSION`.
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '409':
+          description: '`DUPLICATE_FILE` — this exact file was already uploaded; `details.existingUploadId` is the earlier upload'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  status: 409
+                  code: DUPLICATE_FILE
+                  message: This file has already been uploaded
+                  details: { existingUploadId: 3f0c2b8e-4d1a-4c2e-9b7a-1e2f3a4b5c6d }
+                  requestId: 7d9e…
+        '413':
+          description: '`FILE_TOO_LARGE`'
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '415':
+          description: '`UNSUPPORTED_MEDIA_TYPE` (not multipart) or `UNSUPPORTED_FILE_TYPE` (not .csv / .xlsx)'
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '429': { $ref: '#/components/responses/RateLimited' }
+    get:
+      operationId: listUploads
+      tags: [Uploads]
+      summary: My uploads, newest first
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 10000, default: 0 } }
+      responses:
+        '200':
+          description: One page of uploads (without `rowErrors` and `summary`)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uploads:
+                    type: array
+                    items: { $ref: '#/components/schemas/Upload' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /uploads/{id}:
+    get:
+      operationId: getUpload
+      tags: [Uploads]
+      summary: One upload, with progress, summary and row errors
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200':
+          description: The upload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  upload: { $ref: '#/components/schemas/UploadDetail' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404':
+          description: '`UPLOAD_NOT_FOUND`'
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  # ---------- Transactions ----------
+
+  /transactions:
+    get:
+      operationId: listTransactions
+      tags: [Transactions]
+      summary: Filtered, sorted, paginated transactions
+      parameters:
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+        - $ref: '#/components/parameters/category'
+        - $ref: '#/components/parameters/direction'
+        - $ref: '#/components/parameters/uploadId'
+        - $ref: '#/components/parameters/q'
+        - $ref: '#/components/parameters/merchant'
+        - name: sort
+          in: query
+          schema: { type: string, enum: [date_desc, date_asc, amount_desc, amount_asc], default: date_desc }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 100000, default: 0 } }
+      responses:
+        '200':
+          description: One page of transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items: { $ref: '#/components/schemas/Transaction' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /transactions/{id}:
+    patch:
+      operationId: updateTransactionCategory
+      tags: [Transactions]
+      summary: Correct a transaction's category
+      description: |
+        With `applyToMerchant` (the default) the correction is remembered as a
+        rule for this merchant: every transaction from the same merchant is
+        re-labelled, and future uploads use it. A transaction without a
+        merchant is only corrected on its own (`rule` is `null`).
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category]
+              additionalProperties: false
+              properties:
+                category: { $ref: '#/components/schemas/CategoryKey' }
+                applyToMerchant: { type: boolean, default: true }
+            example: { category: groceries, applyToMerchant: true }
+      responses:
+        '200':
+          description: Corrected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaction: { $ref: '#/components/schemas/Transaction' }
+                  rule:
+                    oneOf:
+                      - { $ref: '#/components/schemas/Rule' }
+                      - { type: 'null' }
+                  updatedCount: { type: integer, description: How many transactions changed }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404':
+          description: '`TRANSACTION_NOT_FOUND`'
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  # ---------- Categories ----------
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [Categories]
+      summary: The fixed list of 17 categories
+      responses:
+        '200':
+          description: All categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items: { $ref: '#/components/schemas/Category' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /categories/rules:
+    get:
+      operationId: listRules
+      tags: [Categories]
+      summary: My remembered merchant rules
+      responses:
+        '200':
+          description: Rules, ordered by merchant
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rules:
+                    type: array
+                    items: { $ref: '#/components/schemas/Rule' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /categories/rules/{id}:
+    delete:
+      operationId: deleteRule
+      tags: [Categories]
+      summary: Remove a rule
+      description: Transactions keep their current category; only future uploads are affected.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Removed }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '404':
+          description: '`RULE_NOT_FOUND`'
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  # ---------- Dashboard ----------
+
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [Dashboard]
+      summary: Totals, categories, timeline and top merchants
+      description: Uses the same filters as `GET /transactions`, so the charts match the list.
+      parameters:
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+        - $ref: '#/components/parameters/category'
+        - $ref: '#/components/parameters/direction'
+        - $ref: '#/components/parameters/uploadId'
+        - $ref: '#/components/parameters/q'
+        - $ref: '#/components/parameters/merchant'
+        - name: granularity
+          in: query
+          schema: { type: string, enum: [day, week, month], default: month }
+          description: Timeline grouping. Weeks start on Monday.
+      responses:
+        '200':
+          description: Everything the dashboard draws
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Dashboard' }
+        '400':
+          description: '`VALIDATION_ERROR`, or `TOO_MANY_PERIODS` (more than 1000 timeline points — pick a shorter range or coarser grouping)'
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  # ---------- Exports ----------
+
+  /exports/transactions.csv:
+    get:
+      operationId: exportTransactionsCsv
+      tags: [Exports]
+      summary: Download transactions as CSV
+      description: Streamed. Same filters as `GET /transactions`.
+      parameters:
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+        - $ref: '#/components/parameters/category'
+        - $ref: '#/components/parameters/direction'
+        - $ref: '#/components/parameters/uploadId'
+        - $ref: '#/components/parameters/q'
+        - $ref: '#/components/parameters/merchant'
+      responses:
+        '200':
+          description: CSV file
+          headers:
+            Content-Disposition: { schema: { type: string }, description: '`attachment; filename="…"`' }
+          content:
+            text/csv:
+              schema: { type: string }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /exports/report.pdf:
+    get:
+      operationId: exportReportPdf
+      tags: [Exports]
+      summary: Download a PDF report
+      description: Same filters as `GET /transactions`.
+      parameters:
+        - $ref: '#/components/parameters/from'
+        - $ref: '#/components/parameters/to'
+        - $ref: '#/components/parameters/category'
+        - $ref: '#/components/parameters/direction'
+        - $ref: '#/components/parameters/uploadId'
+        - $ref: '#/components/parameters/q'
+        - $ref: '#/components/parameters/merchant'
+      responses:
+        '200':
+          description: PDF file
+          headers:
+            Content-Disposition: { schema: { type: string }, description: '`attachment; filename="…"`' }
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: The `accessToken` from `POST /auth/login` or `POST /auth/refresh`.
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: refresh_token
+      description: Set by the server on login; the browser sends it automatically.
+
+  parameters:
+    from:
+      { name: from, in: query, description: 'Inclusive start date (must be on or before `to`)', schema: { type: string, format: date } }
+    to:
+      { name: to, in: query, description: Inclusive end date, schema: { type: string, format: date } }
+    category:
+      { name: category, in: query, schema: { $ref: '#/components/schemas/CategoryKey' } }
+    direction:
+      { name: direction, in: query, schema: { type: string, enum: [debit, credit] } }
+    uploadId:
+      { name: uploadId, in: query, description: Only transactions from this upload, schema: { type: string, format: uuid } }
+    q:
+      { name: q, in: query, description: Text to find in the description, schema: { type: string, minLength: 1, maxLength: 100 } }
+    merchant:
+      { name: merchant, in: query, description: 'Exact merchant key (as in `topMerchants`)', schema: { type: string, minLength: 1, maxLength: 200 } }
+
+  responses:
+    ValidationError:
+      description: '`VALIDATION_ERROR` (or `MALFORMED_JSON`); `details` lists each bad field'
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error:
+              status: 400
+              code: VALIDATION_ERROR
+              message: Invalid request body
+              details: [{ field: password, message: Password must be at least 8 characters }]
+              requestId: 7d9e…
+    Unauthenticated:
+      description: '`UNAUTHENTICATED` (no / malformed header), `INVALID_TOKEN`, or `TOKEN_EXPIRED` (refresh and retry)'
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    RateLimited:
+      description: '`RATE_LIMITED`'
+      headers:
+        Retry-After: { schema: { type: integer }, description: Seconds to wait }
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            status: { type: integer }
+            code: { type: string, description: Stable machine-readable code }
+            message: { type: string, description: 'Human-readable and safe to show' }
+            details: { description: Extra information; shape depends on `code` }
+            requestId: { type: string, description: 'Also in the `X-Request-Id` header; quote it when reporting a problem' }
+
+    Pagination:
+      type: object
+      properties:
+        limit: { type: integer }
+        offset: { type: integer }
+        hasMore: { type: boolean, description: Whether another page exists }
+
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        name: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    CategoryKey:
+      type: string
+      enum:
+        - food_dining
+        - groceries
+        - transport
+        - fuel
+        - travel
+        - shopping
+        - utilities
+        - entertainment
+        - health
+        - rent
+        - investments
+        - cash
+        - transfers_out
+        - salary
+        - interest
+        - transfers_in
+        - uncategorized
+
+    Category:
+      type: object
+      properties:
+        key: { $ref: '#/components/schemas/CategoryKey' }
+        name: { type: string, example: Food & Dining }
+        kind: { type: string, enum: [expense, income, other] }
+
+    Rule:
+      type: object
+      description: '"Always put this merchant in this category"'
+      properties:
+        id: { type: string, format: uuid }
+        merchantKey: { type: string }
+        category: { $ref: '#/components/schemas/CategoryKey' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    Transaction:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        uploadId: { type: string, format: uuid }
+        line: { type: integer, description: Line in the original file }
+        date: { type: string, format: date }
+        valueDate: { type: [string, 'null'], format: date }
+        description: { type: string }
+        reference: { type: [string, 'null'] }
+        direction: { type: string, enum: [debit, credit] }
+        amountPaise: { type: integer, minimum: 0 }
+        balancePaise: { type: [integer, 'null'] }
+        category: { $ref: '#/components/schemas/CategoryKey' }
+        categorySource:
+          type: string
+          enum: [user, rule, llm, none]
+          description: Who chose the category
+        merchantKey: { type: [string, 'null'] }
+
+    Upload:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        originalFilename: { type: string }
+        sizeBytes: { type: integer }
+        format: { type: string, enum: [csv, xlsx] }
+        stage: { type: string, enum: [queued, reading, importing, saving, completed, failed] }
+        progress: { $ref: '#/components/schemas/UploadProgress' }
+        error:
+          description: Why it failed (only when `stage` is `failed`)
+          oneOf:
+            - type: object
+              properties:
+                code: { type: string }
+                message: { type: string }
+            - { type: 'null' }
+        createdAt: { type: string, format: date-time }
+        startedAt: { type: [string, 'null'], format: date-time }
+        finishedAt: { type: [string, 'null'], format: date-time }
+
+    UploadProgress:
+      type: object
+      description: Filled in as processing goes; empty while queued.
+      properties:
+        percent: { type: integer, minimum: 0, maximum: 100 }
+        rowsRead: { type: integer }
+        transactionsFound: { type: integer }
+        transactionsSaved: { type: integer }
+        rowErrors: { type: integer, description: Total rows that couldn't be read }
+        skippedRows: { type: integer, description: Only once completed }
+        duplicatesSkipped: { type: integer, description: Already imported from an overlapping statement (only once completed) }
+
+    UploadDetail:
+      allOf:
+        - $ref: '#/components/schemas/Upload'
+        - type: object
+          properties:
+            rowErrors:
+              type: array
+              description: The first rows that couldn't be read (the total is `progress.rowErrors`)
+              items:
+                type: object
+                properties:
+                  line: { type: integer }
+                  code: { type: string, example: NO_AMOUNT }
+                  message: { type: string }
+            summary:
+              description: What the statement says (only once completed)
+              oneOf:
+                - $ref: '#/components/schemas/UploadSummary'
+                - { type: 'null' }
+
+    Totals:
+      type: object
+      properties:
+        count: { type: integer }
+        debitPaise: { type: integer, description: Money out }
+        creditPaise: { type: integer, description: Money in }
+        netPaise: { type: integer, description: creditPaise − debitPaise }
+
+    Period:
+      type: object
+      description: The dates covered (both `null` when there are no transactions)
+      properties:
+        from: { type: [string, 'null'], format: date }
+        to: { type: [string, 'null'], format: date }
+
+    UploadSummary:
+      type: object
+      properties:
+        period: { $ref: '#/components/schemas/Period' }
+        totals: { $ref: '#/components/schemas/Totals' }
+        byCategory:
+          type: array
+          items:
+            allOf:
+              - type: object
+                properties:
+                  category: { $ref: '#/components/schemas/CategoryKey' }
+              - $ref: '#/components/schemas/Totals'
+        byMonth:
+          type: array
+          items:
+            allOf:
+              - type: object
+                properties:
+                  month: { type: string, example: 2026-09 }
+              - $ref: '#/components/schemas/Totals'
+        balance:
+          type: object
+          description: Does the running balance column add up?
+          properties:
+            status: { type: string, enum: [ok, mismatch, unavailable] }
+            order: { type: [string, 'null'], enum: [oldest_first, newest_first, null] }
+            checkedRows: { type: integer }
+            openingPaise: { type: [integer, 'null'] }
+            closingPaise: { type: [integer, 'null'] }
+            mismatchCount: { type: integer }
+            mismatches: { type: array, items: { type: object } }
+
+    Dashboard:
+      type: object
+      properties:
+        granularity: { type: string, enum: [day, week, month] }
+        period: { $ref: '#/components/schemas/Period' }
+        totals: { $ref: '#/components/schemas/Totals' }
+        byCategory:
+          type: array
+          description: Only categories present, in category-list order
+          items:
+            allOf:
+              - type: object
+                properties:
+                  category: { $ref: '#/components/schemas/CategoryKey' }
+                  name: { type: string, example: Food & Dining }
+                  kind: { type: string, enum: [expense, income, other] }
+              - $ref: '#/components/schemas/Totals'
+        timeline:
+          type: array
+          description: One point per period, gaps filled with zeros
+          items:
+            allOf:
+              - type: object
+                properties:
+                  period: { type: string, format: date, description: First day of the day / week / month }
+                  spendingByCategory:
+                    type: object
+                    description: Money out per category (only categories with spending)
+                    additionalProperties: { type: integer }
+              - $ref: '#/components/schemas/Totals'
+        topMerchants:
+          type: array
+          description: The 10 merchants with the most money out
+          items:
+            type: object
+            properties:
+              merchantKey: { type: string }
+              count: { type: integer }
+              debitPaise: { type: integer }
+              category: { $ref: '#/components/schemas/CategoryKey', description: Their most common category }
