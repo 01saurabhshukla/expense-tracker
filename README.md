@@ -7,6 +7,8 @@ exports.
 
 **Live:** https://saurabh-shukla.duckdns.org (API: https://api.saurabh-shukla.duckdns.org/health)
 
+**API docs (Swagger):** https://api.saurabh-shukla.duckdns.org/docs — every route, with "Try it out"
+
 Sample statements to try it with: [`backend/tests/fixtures/statements/`](backend/tests/fixtures/statements/)
 (HDFC, SBI, ICICI, Axis, Kotak — synthetic data; `.xlsx` versions in `xlsx/`).
 
@@ -20,7 +22,8 @@ Sample statements to try it with: [`backend/tests/fixtures/statements/`](backend
 6. [Setup, running and testing](#6-setup-running-and-testing)
 7. [Deployment](#7-deployment)
 8. [Self-assessment](#8-self-assessment)
-9. [Further documentation](#9-further-documentation)
+9. [Future scope](#9-future-scope)
+10. [Further documentation](#10-further-documentation)
 
 ---
 
@@ -248,9 +251,6 @@ by `npm run migrate` and tracked in `schema_migrations`.
 
 ### REST API
 
-Interactive docs: **`GET /docs`** (Swagger UI); the OpenAPI 3.1 file is
-[`backend/openapi.yaml`](backend/openapi.yaml), also served at `/docs/openapi.yaml`.
-
 All responses are JSON unless noted. Authenticated routes need
 `Authorization: Bearer <access token>`. Errors always look like
 `{ "error": { "status", "code", "message", "details", "requestId" } }`.
@@ -431,12 +431,31 @@ change.
    list. But I feel a completed project is better than having a project which
    has everything but isn't working well enough to provide a demo.
 
-## 9. Further documentation
+## 9. Future scope
+
+1. **Full Excel support.** Most Indian banks give statements as Excel, not
+   CSV. `.xlsx` works today, but older `.xls` files and password-protected
+   statements are refused (`LEGACY_OR_PROTECTED_WORKBOOK`). Next: read
+   `.xls`, unlock protected files with a password the user enters, and
+   cover more banks' layouts.
+2. **LLM-assisted classification.** Rules (plus the user's own corrections)
+   can only match wording they already know; new merchants and vague UPI
+   descriptions end up "Uncategorized". An LLM would classify only those
+   leftovers, with its answers marked as `llm` so the user can see and
+   correct them.
+3. **Better traceability.** Trace each request and each upload job end to
+   end (API → queue → worker → database), so the slow steps of processing a
+   large statement can be found and optimized.
+4. **Runtime metrics.** CPU and memory use, request rates and latencies,
+   queue length and job durations, on a dashboard, to see how the API and
+   the worker behave under load.
+
+## 10. Further documentation
 
 | File | What's in it |
 |---|---|
-| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Every design decision (D1–D39) with the reasoning |
-| [`docs/TRADEOFFS.md`](docs/TRADEOFFS.md) | Accepted trade-offs (T1–T96): what we accept, when it hurts, how to fix |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md) | Every design decision (D1–D42) with the reasoning |
+| [`docs/TRADEOFFS.md`](docs/TRADEOFFS.md) | Accepted trade-offs (T1–T100): what we accept, when it hurts, how to fix |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Server setup, nginx in detail, HTTPS, CI/CD, redeploy and rollback |
 | [`docs/TASKS.md`](docs/TASKS.md) | What's done and what's next |
 | [`backend/tests/fixtures/statements/README.md`](backend/tests/fixtures/statements/README.md) | The sample statements and what each one tests |
